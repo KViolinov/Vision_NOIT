@@ -1,0 +1,6 @@
+{
+    "jarvis_name": "Слави",
+    "jarvis_voice": "Slavi",
+    "type_discussion": "continuous",
+    "wait_interval_seconds": 60
+}

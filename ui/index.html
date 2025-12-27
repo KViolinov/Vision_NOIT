@@ -1,0 +1,371 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="bg">-->
+<!--<head>-->
+<!--  <meta charset="UTF-8" />-->
+<!--  <meta name="viewport" content="width=device-width, initial-scale=1.0" />-->
+<!--  <title>VISION Interface MK5</title>-->
+<!--  <link rel="stylesheet" href="style.css" />-->
+<!--  <script src="qrc:///qtwebchannel/qwebchannel.js"></script>-->
+<!--  <link rel="stylesheet" href="style.css">-->
+<!--</head>-->
+<!--<body>-->
+<!--  &lt;!&ndash; === LOADING SCREEN === &ndash;&gt;-->
+<!--  <div id="loadingScreen">-->
+<!--    <div class="loading-logo">-->
+<!--      <img src="assets/vision_logo_transparent.png" alt="Vision Logo" class="logo-image">-->
+<!--      <div class="logo-text">VISION</div>-->
+<!--    </div>-->
+
+<!--    <div class="loading-bar">-->
+<!--      <div class="loading-bar-fill"></div>-->
+<!--    </div>-->
+<!--  </div>-->
+
+<!--  <div class="user-header">-->
+<!--    <img id="user-photo" src="assets/default_pfp.png" alt="Профилна снимка" class="user-photo">-->
+<!--    <span id="greeting"></span>-->
+<!--&lt;!&ndash;    <span id="account-badge" class="badge"></span>&ndash;&gt;-->
+
+<!--    <button class="settings-btn" title="Настройки">-->
+<!--      <img src="assets/settings_icon.png" alt="Настройки" class="settings-icon">-->
+<!--    </button>-->
+<!--  </div>-->
+
+<!--  <div class="orb-container color-blue">-->
+<!--    <div class="orb" id="orb"></div>-->
+<!--    <div class="face">-->
+<!--      <div class="pixelated-bg"></div>-->
+<!--      <div class="pixelated-overlay"></div>-->
+<!--      <div class="eyes">-->
+<!--        <div class="eye eye-left"></div>-->
+<!--        <div class="eye eye-right"></div>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+
+<!--&lt;!&ndash;  <div id="status-bar" class="status-bar">&ndash;&gt;-->
+<!--&lt;!&ndash;    <span id="spotify-info">Not playing</span>&ndash;&gt;-->
+<!--&lt;!&ndash;    <span id="current-time"></span>&ndash;&gt;-->
+<!--&lt;!&ndash;  </div>&ndash;&gt;-->
+
+<!--  &lt;!&ndash; === SETTINGS PANEL === &ndash;&gt;-->
+<!--  <div id="settingsPanel">-->
+<!--    <button class="close-settings">✕</button>-->
+<!--    <h2 class="settings-title">-->
+<!--      <img src="assets/settings_icon.png" alt="Икона настройки" class="settings-title-icon">-->
+<!--      Настройки-->
+<!--    </h2>-->
+
+<!--    <div class="tabs">-->
+<!--      <button class="tab-btn active" data-tab="general">Общи</button>-->
+<!--      <button class="tab-btn" data-tab="contacts">Контакти</button>-->
+<!--    </div>-->
+
+<!--    <div id="general" class="tab-content active">-->
+<!--      <div class="form-group">-->
+<!--        <label>Вашето име</label>-->
+<!--        <input type="text" placeholder="Въведете името си..."/>-->
+<!--      </div>-->
+
+<!--      <div class="form-group">-->
+<!--        <label>Глас на асистента</label>-->
+<!--        <select>-->
+<!--          <option>Брайън</option>-->
+<!--          <option>Саманта</option>-->
+<!--          <option>Роджър</option>-->
+<!--          <option>Джесика</option>-->
+<!--          <option selected>Слави</option>-->
+<!--        </select>-->
+<!--      </div>-->
+
+<!--      <div class="form-group">-->
+<!--        <label>Тип дискусия</label>-->
+<!--        <select>-->
+<!--          <option>Веднъж</option>-->
+<!--          <option selected>Разговор</option>-->
+<!--        </select>-->
+<!--      </div>-->
+
+<!--      <div class="form-group">-->
+<!--        <label>Време за изчакване (сек)</label>-->
+<!--        <input type="range" min="1" max="60" value="10" />-->
+<!--      </div>-->
+
+<!--      <button class="btn" style="width: 100%;">Запази</button>-->
+<!--    </div>-->
+
+<!--    <div id="contacts" class="tab-content">-->
+<!--      <div class="form-group"><input id="contactName" placeholder="Име" /></div>-->
+<!--      <div class="form-group"><input id="contactPhone" placeholder="Телефон" /></div>-->
+<!--      <div class="form-group"><input id="contactEmail" placeholder="Имейл" /></div>-->
+<!--      <div class="form-group"><input id="contactInstagram" placeholder="Линк към Instagram" /></div>-->
+<!--      <button class="btn" id="addContactBtn" style="width: 100%;">Добави контакт</button>-->
+<!--      <hr />-->
+<!--      <div class="contact-list"></div>-->
+<!--    </div>-->
+<!--  </div>-->
+
+<!--  <script src="script.js"></script>-->
+<!--</body>-->
+<!--</html>-->
+
+
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VISION Interface MK5</title>
+
+  <link rel="stylesheet" href="style.css" />
+  <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+</head>
+
+<body>
+
+  <!-- === LOADING SCREEN === -->
+  <div id="loadingScreen">
+    <div class="loading-logo">
+      <img src="assets/vision_logo_transparent.png" class="logo-image">
+      <div class="logo-text">VISION</div>
+    </div>
+
+    <div class="loading-bar">
+      <div class="loading-bar-fill"></div>
+    </div>
+  </div>
+
+ <div class="container">
+     <div class="glass-card widget-weather">
+        <div class="weather-main">
+            <div>
+                <h3 class="city-name">Veliko Tarnovo</h3>
+                <div class="temp-large">8°</div>
+            </div>
+            <div class="weather-summary">
+                <i class="fas fa-cloud-sun"></i>
+                <p>Partly Cloudy</p>
+                <p class="hl-temps">H:56° L:50°</p>
+            </div>
+        </div>
+        <div class="hourly-forecast">
+            <div class="hour-item">
+                <span>10 AM</span>
+                <i class="fas fa-cloud-sun"></i>
+            </div>
+            <div class="hour-item">
+                <span>11 AM</span>
+                <i class="fas fa-cloud-sun"></i>
+            </div>
+            <div class="hour-item">
+                <span>12 PM</span>
+                <i class="fas fa-cloud-sun"></i>
+            </div>
+            <div class="hour-item">
+                <span>1 PM</span>
+                <i class="fas fa-cloud"></i>
+            </div>
+            <div class="hour-item">
+                <span>2 PM</span>
+                <i class="fas fa-cloud-sun"></i>
+            </div>
+            <div class="hour-item">
+                <span>3 PM</span>
+                <i class="fas fa-cloud-sun"></i>
+            </div>
+        </div>
+    </div>
+    <div class="glass-card widget-calendar">
+        <div class="cal-header">April</div>
+        <div class="calendar-grid">
+            <div class="day-name">S</div><div class="day-name">M</div><div class="day-name">T</div><div class="day-name">W</div><div class="day-name">T</div><div class="day-name">F</div><div class="day-name">S</div>
+
+            <div class="date-num prev-month">30</div>
+            <div class="date-num prev-month">31</div>
+            <div class="date-num current-day">1</div>
+            <div class="date-num">2</div>
+            <div class="date-num">3</div>
+            <div class="date-num">4</div>
+            <div class="date-num">5</div>
+
+            <div class="date-num">6</div>
+            <div class="date-num">7</div>
+            <div class="date-num">8</div>
+            <div class="date-num">9</div>
+            <div class="date-num">10</div>
+            <div class="date-num">11</div>
+            <div class="date-num">12</div>
+
+            <div class="date-num">13</div>
+            <div class="date-num">14</div>
+            <div class="date-num">15</div>
+            <div class="date-num">16</div>
+            <div class="date-num">17</div>
+            <div class="date-num">18</div>
+            <div class="date-num">19</div>
+
+            <div class="date-num">20</div>
+            <div class="date-num">21</div>
+            <div class="date-num">22</div>
+            <div class="date-num">23</div>
+            <div class="date-num">24</div>
+            <div class="date-num">25</div>
+            <div class="date-num">26</div>
+
+            <div class="date-num">27</div>
+            <div class="date-num">28</div>
+            <div class="date-num">29</div>
+            <div class="date-num">30</div>
+        </div>
+    </div>
+</div>
+
+
+
+
+  <!-- === USER HEADER === -->
+  <div class="user-header">
+    <img id="user-photo" src="assets/default_pfp.png" class="user-photo">
+    <span id="greeting"></span>
+
+    <button class="settings-btn" title="Настройки">
+      <img src="assets/settings_icon.png" class="settings-icon">
+    </button>
+  </div>
+
+  <!-- === ORB === -->
+  <div class="orb-container color-blue">
+    <div class="orb" id="orb"></div>
+    <div class="face">
+      <div class="pixelated-bg"></div>
+      <div class="pixelated-overlay"></div>
+      <div class="eyes">
+        <div class="eye"></div>
+        <div class="eye"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="command-hint">Кажи "Слави" за да започнеш</div>
+
+  <!-- === SETTINGS PANEL (NEW LAYOUT) === -->
+  <div id="settingsPanel">
+    <button class="close-settings">✕</button>
+    <div class="settings-wrapper">
+
+      <!-- LEFT SIDEBAR -->
+      <div class="settings-sidebar">
+        <button class="settings-tab active" data-tab="general">Общи</button>
+        <button class="settings-tab" data-tab="contacts">Контакти</button>
+        <button class="settings-tab" data-tab="wallpaper">Тапети</button>
+        <button class="settings-tab" data-tab="apikeys">API ключове</button>
+<!--        <button class="settings-tab" data-tab="others">Други</button>-->
+      </div>
+
+      <!-- RIGHT CONTENT -->
+      <div class="settings-content">
+        <h2 id="settings-title">Общи</h2>
+
+        <!-- ===== General ===== -->
+        <div id="general" class="tab-panel active">
+
+          <div class="form-group">
+            <label>Вашето име</label>
+            <input type="text" id="general-name-input" placeholder="Въведете името си..." />
+          </div>
+
+          <div class="form-group">
+            <label>Глас на асистента</label>
+            <select id="general-voice-select">
+              <option>Брайън</option>
+              <option>Саманта</option>
+              <option>Роджър</option>
+              <option>Джесика</option>
+              <option selected>Слави</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Тип дискусия</label>
+            <select id="general-mode-select">
+              <option>Веднъж</option>
+              <option selected>Разговор</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Време за изчакване (сек)</label>
+            <input type="range" id="general-wait-range" min="1" max="60" value="10" />
+          </div>
+
+          <button class="btn" id="saveGeneralBtn" style="width:100%;">Запази</button>
+
+        </div>
+
+        <!-- ===== Contacts ===== -->
+        <div id="contacts" class="tab-panel">
+
+          <div class="form-group"><input id="contactName" placeholder="Име"></div>
+          <div class="form-group"><input id="contactPhone" placeholder="Телефон"></div>
+          <div class="form-group"><input id="contactEmail" placeholder="Имейл"></div>
+          <div class="form-group"><input id="contactInstagram" placeholder="Instagram"></div>
+
+          <button class="btn" id="addContactBtn" style="width:100%;">Добави контакт</button>
+
+          <hr>
+
+          <div class="contact-list"></div>
+        </div>
+
+        <!-- ===== Wallpaper ===== -->
+        <div id="wallpaper" class="tab-panel">
+          <h3>Изберете тапет</h3>
+
+          <div class="wallpaper-grid">
+            <img src="wallpapers/wallpaper_1.jpg" class="wallpaper-thumb" data-wall="1">
+            <img src="wallpapers/wallpaper_2.jpg" class="wallpaper-thumb" data-wall="2">
+            <img src="wallpapers/wallpaper_3.jpg" class="wallpaper-thumb" data-wall="3">
+            <img src="wallpapers/wallpaper_4.jpg" class="wallpaper-thumb" data-wall="4">
+            <img src="wallpapers/wallpaper_5.jpg" class="wallpaper-thumb" data-wall="5">
+          </div>
+        </div>
+
+        <!-- ===== API KEYS ===== -->
+        <!-- ===== API KEYS ===== -->
+        <div id="apikeys" class="tab-panel">
+            <h3>API ключове</h3>
+
+            <div class="form-group">
+                <label>Gemini API Key</label>
+                <input id="geminiKey" type="text" placeholder="GEMINI_KEY" />
+            </div>
+
+            <div class="form-group">
+                <label>ElevenLabs API Key</label>
+                <input id="elevenKey" type="text" placeholder="ELEVEN_LABS_API" />
+            </div>
+
+            <div class="form-group">
+                <label>Spotify Client ID</label>
+                <input id="spotifyId" type="text" placeholder="SPOTIFY_CLIENT_ID" />
+            </div>
+
+            <div class="form-group">
+                <label>Spotify Client Secret</label>
+                <input id="spotifySecret" type="text" placeholder="SPOTIFY_CLIENT_SECRET" />
+            </div>
+
+            <div class="form-group">
+                <label>DeepSeek API Key</label>
+                <input id="deepseekKey" type="text" placeholder="DEEPSEEK_API_KEY" />
+            </div>
+
+            <button id="saveApiKeysBtn" class="btn" style="width: 100%;">Запази API ключове</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
