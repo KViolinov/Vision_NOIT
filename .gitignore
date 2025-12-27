@@ -1,52 +1,58 @@
+# ======================
 # Python
+# ======================
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-.venv/
-ENV/
-env.bak/
-venv.bak/
-*.pyc
-*.pyo
 *.pyd
-*.py.class
-*.egg-info/
+*.so
 *.egg
+*.egg-info/
+.Python
 .python-version
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python tooling
 pip-log.txt
 pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
 
-# PyCharm
+# ======================
+# IDEs
+# ======================
 .idea/
+.vscode/
 *.iml
-out/
-.idea_modules/
 *.iws
-workspace.xml
-tasks.xml
-shelf/
+*.swp
+*.swo
+*~
 
-# Virtual environment
-venv/           # Your virtual environment
-env/            # Another possible env folder
-.cache/
-
-# Build directories
+# ======================
+# Build / Output
+# ======================
 build/
 dist/
-*.egg-info/
+output/
 
-# Executable files (should not be in git)
-*.exe           # FFmpeg executables
-*.dll
-*.so
-*.dylib
+# ======================
+# Node / UI
+# ======================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Media files (often large)
+# ======================
+# Media / Assets (generated)
+# ======================
 *.mp3
 *.wav
 *.mp4
@@ -57,67 +63,32 @@ dist/
 *.png
 *.gif
 
-# Cache files
-.cache/
-__pycache__/
-nutka-crash-report.xml
+# ======================
+# Logs & Temp
+# ======================
+*.log
+logs/
+*.tmp
+*.temp
 
-# Node/JavaScript (for your UI)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# OS generated files
+# ======================
+# OS junk
+# ======================
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 Desktop.ini
 
-# Environment variables
+# ======================
+# Environment & secrets
+# ======================
 .env
 .env.local
 .env.*.local
 .env.production
 
-# IDE
-.vscode/
-*.swp
-*.swo
-*~
-
-# Logs
-*.log
-logs/
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-
-# Output directories
-output/          # Your build/output folder
-
-# Sound files (if they're generated/downloaded)
-sound_files/    # Unless they're essential small sound files
-
-# System files
-desktop.ini
-
-# Temporary files
-*.tmp
-*.temp
-
+# ======================
+# Project-specific (VISION / JARVIS)
+# ======================
 /jarvis_functions/essential_functions/important_files/*
 /jarvis_functions/essential_functions/contacts.json
-
-build.bat
-nuitka-crash-report.xml
-testing.py
-output/*
 account/user_settings.json
