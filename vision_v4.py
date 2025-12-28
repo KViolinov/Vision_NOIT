@@ -152,7 +152,6 @@ def setup_tray(ui):
     except Exception as e:
         print(f"[Tray Error] {e}")
 
-
 def handle_user_input(user_input):
     jarvis_voice = get_jarvis_voice()
 
