@@ -92,3 +92,8 @@ Desktop.ini
 /jarvis_functions/essential_functions/important_files/*
 /jarvis_functions/essential_functions/contacts.json
 account/user_settings.json
+
+nuitka-crash-report.xml
+build.bat
+.pytest_cache
+testing.py
