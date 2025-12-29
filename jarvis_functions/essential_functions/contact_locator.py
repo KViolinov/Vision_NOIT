@@ -3,7 +3,10 @@ import json
 
 # Path to the contacts.json file
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-CONTACTS_FILE = os.path.join(ROOT_DIR, "jarvis_functions", "essential_functions", "contacts.json")
+CONTACTS_FILE = os.path.join(
+    ROOT_DIR, "jarvis_functions", "essential_functions", "contacts.json"
+)
+
 
 def find_contact(query: str, field: str = None) -> str | dict | None:
     """

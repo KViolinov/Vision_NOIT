@@ -5,22 +5,26 @@ import win32com.client as win32
 import google.generativeai as genai
 
 from jarvis_functions.essential_functions.voice_input import record_text
-from jarvis_functions.essential_functions.enhanced_elevenlabs import generate_audio_from_text
+from jarvis_functions.essential_functions.enhanced_elevenlabs import (
+    generate_audio_from_text,
+)
 
 from jarvis_functions.essential_functions.change_config_settings import get_jarvis_voice
 from jarvis_functions.essential_functions.contact_locator import find_contact
 
 jarvis_voice = get_jarvis_voice()
 
-#Helper functions
+
+# Helper functions
 def send_email_function(subject, body, to_email):
-    outlook = win32.Dispatch('outlook.application')
+    outlook = win32.Dispatch("outlook.application")
     mail = outlook.CreateItem(0)  # 0 = MailItem
     mail.Subject = subject
     mail.Body = body
     mail.To = to_email
     mail.Send()
     return True
+
 
 def create_outlook_appointment(subject, start_time, duration_minutes: int):
     outlook = win32.Dispatch("Outlook.Application")
@@ -34,6 +38,7 @@ def create_outlook_appointment(subject, start_time, duration_minutes: int):
     appt.Save()
 
     print(f"✅ Appointment '{subject}' created at {start_time}")
+
 
 def get_time(user_input):
     # Configure
@@ -53,7 +58,7 @@ def get_time(user_input):
             '  "duration_minutes": 60\n'
             "}\n"
             "Не добавяй нищо извън JSON. Не обяснявай. Само чист JSON."
-        )
+        ),
     )
 
     # Send message
@@ -70,31 +75,44 @@ def get_time(user_input):
 
 
 def send_email() -> str:
-    generate_audio_from_text(text="Разбира се, към кого бихте желали да пратите имейла?", voice=get_jarvis_voice())
+    generate_audio_from_text(
+        text="Разбира се, към кого бихте желали да пратите имейла?",
+        voice=get_jarvis_voice(),
+    )
 
     print("Listening for email info...")
     user_input = record_text()
 
     to_email = find_contact(user_input, "имейл")
 
-    generate_audio_from_text(text="Каква ще е темата на вашето писмо?", voice=get_jarvis_voice())
+    generate_audio_from_text(
+        text="Каква ще е темата на вашето писмо?", voice=get_jarvis_voice()
+    )
 
     print("Listening for email info...")
     subject = record_text()
 
-    generate_audio_from_text(text="Какво искате да изпратите?", voice=get_jarvis_voice())
+    generate_audio_from_text(
+        text="Какво искате да изпратите?", voice=get_jarvis_voice()
+    )
 
     print("Listening for email info...")
     body = record_text()
 
-    generate_audio_from_text(text="Супер, преди да изпратя имейла, ще ви кажа какво съм си записал",
-                            voice=jarvis_voice)
+    generate_audio_from_text(
+        text="Супер, преди да изпратя имейла, ще ви кажа какво съм си записал",
+        voice=jarvis_voice,
+    )
 
     generate_audio_from_text(text=f"Имейла е към {to_email}", voice=get_jarvis_voice())
-    generate_audio_from_text(text="Темата на писмото е " + subject + "И съдържанието на писмото е " + body,
-                            voice=jarvis_voice)
+    generate_audio_from_text(
+        text="Темата на писмото е " + subject + "И съдържанието на писмото е " + body,
+        voice=jarvis_voice,
+    )
 
-    generate_audio_from_text(text="Всичко наред ли е с информацията в писмото?", voice=jarvis_voice)
+    generate_audio_from_text(
+        text="Всичко наред ли е с информацията в писмото?", voice=jarvis_voice
+    )
 
     print("Listening for approval...")
     user_input = record_text()
@@ -110,6 +128,7 @@ def send_email() -> str:
         return "Имаше проблем с информацията в имейла"
 
     return "Имейлът е изпратен успешно."
+
 
 # def create_appointment():
 #     # 1) Ask for subject
@@ -191,7 +210,9 @@ def readMail():
     num_emails = 3  # Change this number if you need more
     latest_messages = [messages.GetNext() for _ in range(num_emails)]
 
-    generate_audio_from_text(text="Ето последните 3 имейла в пощата ви: ", voice=jarvis_voice)
+    generate_audio_from_text(
+        text="Ето последните 3 имейла в пощата ви: ", voice=jarvis_voice
+    )
     # Print email details
     for i, email in enumerate(latest_messages, start=1):
         print(f"\n📧 Email {i}:")
@@ -201,8 +222,10 @@ def readMail():
         print("\n--- Email Body ---\n")
         print(email.Body)  # Full email body
         print("\n--- End of Email ---\n")
-        generate_audio_from_text(text=f"Имейл номер {i}, изпратено е от {email.SenderName}, "
-                                     f"темата е {email.Subject}, а съдържанието на писмото е {email.Body}",
-                                voice=jarvis_voice)
+        generate_audio_from_text(
+            text=f"Имейл номер {i}, изпратено е от {email.SenderName}, "
+            f"темата е {email.Subject}, а съдържанието на писмото е {email.Body}",
+            voice=jarvis_voice,
+        )
 
     return "Четенето на имейли е завършено."

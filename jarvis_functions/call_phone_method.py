@@ -43,15 +43,17 @@
 #
 
 
-
 import pyautogui
 import time
 import webbrowser
 import pyperclip
 import os
 
+
 def instagram_start_call():
-    url = "https://www.instagram.com/call/?has_video=false&ig_thread_id=18021901019628989"
+    url = (
+        "https://www.instagram.com/call/?has_video=false&ig_thread_id=18021901019628989"
+    )
 
     print("Opening call page...")
     webbrowser.open(url, new=2)

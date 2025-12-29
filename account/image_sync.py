@@ -20,7 +20,7 @@ def sync_user_photo():
             print("[⚠] No user email — skipping cloud sync.")
             return False
 
-        safe_email = re.sub(r'[^a-zA-Z0-9]', '_', email.lower())
+        safe_email = re.sub(r"[^a-zA-Z0-9]", "_", email.lower())
         cloud_url = f"https://kvb-bg.com/Vision/uploads/{safe_email}_pfp.png"
 
         # ✅ Check if user_pfp.png already exists and is recent
@@ -32,7 +32,9 @@ def sync_user_photo():
 
         print(f"[☁] Checking cloud image for {email}...")
         r = requests.get(cloud_url, timeout=10)
-        if r.status_code == 200 and r.headers.get("Content-Type", "").startswith("image/"):
+        if r.status_code == 200 and r.headers.get("Content-Type", "").startswith(
+            "image/"
+        ):
             with open(USER_PFP, "wb") as f:
                 f.write(r.content)
             print("[✅] User photo downloaded and saved locally.")

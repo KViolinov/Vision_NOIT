@@ -3,7 +3,9 @@ import io
 from PIL import ImageGrab
 import google.generativeai as genai
 
-from jarvis_functions.essential_functions.enhanced_elevenlabs import generate_audio_from_text
+from jarvis_functions.essential_functions.enhanced_elevenlabs import (
+    generate_audio_from_text,
+)
 
 from account.check_account import require_login
 
@@ -16,6 +18,7 @@ os.environ["GEMINI_API_KEY"] = os.getenv("GEMINI_KEY")
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
 model = genai.GenerativeModel("gemini-2.5-flash")
+
 
 @require_login
 def take_screenshot():

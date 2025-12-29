@@ -83,10 +83,6 @@ from jarvis_functions.essential_functions.contact_locator import find_contact
 # generate_message(text)
 
 
-
-
-
-
 # from ui.vision_ui import VisionAPI
 # import webview
 # import threading
@@ -112,9 +108,6 @@ from jarvis_functions.essential_functions.contact_locator import find_contact
 #
 #     # Start the WebView on the main thread
 #     webview.start()
-
-
-
 
 
 # def check_payment(func):
@@ -367,6 +360,7 @@ from jarvis_functions.essential_functions.contact_locator import find_contact
 
 
 import qrcode
-img = qrcode.make('Some data here')
+
+img = qrcode.make("Some data here")
 type(img)  # qrcode.image.pil.PilImage
 img.save("some_file.png")

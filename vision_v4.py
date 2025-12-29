@@ -16,14 +16,21 @@ from PIL import Image
 
 from dotenv import load_dotenv
 
-from jarvis_functions.essential_functions.enhanced_elevenlabs import generate_audio_from_text
+from jarvis_functions.essential_functions.enhanced_elevenlabs import (
+    generate_audio_from_text,
+)
 from jarvis_functions.essential_functions.voice_input import record_text
 
 from jarvis_functions.essential_functions.change_config_settings import (
-    get_jarvis_voice, get_jarvis_name, change_jarvis_name, change_jarvis_voice, get_wait_interval_seconds, get_type_discussion
+    get_jarvis_voice,
+    get_jarvis_name,
+    change_jarvis_name,
+    change_jarvis_voice,
+    get_wait_interval_seconds,
+    get_type_discussion,
 )
 
-#from jarvis_functions.call_phone_method import call_phone
+# from jarvis_functions.call_phone_method import call_phone
 from jarvis_functions.whatsapp_messaging_method import whatsapp_send_message
 from jarvis_functions.send_message_instagram.input_to_message_ai import generate_message
 
@@ -38,6 +45,7 @@ from jarvis_functions.play_spotify import play_song, play_music, pause_music
 
 # Document and Mail related functions
 from jarvis_functions.word_document import openWord
+
 # from jarvis_functions.mail_related import (
 #     #readMail, create_appointment, send_email
 #     readMail, send_email
@@ -53,11 +61,14 @@ load_dotenv()
 
 client_id = os.getenv("SPOTIFY_CLIENT_ID")
 client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
-sp = spotipy.Spotify(auth_manager=spotipy.SpotifyOAuth(
-    client_id=client_id,
-    client_secret=client_secret,
-    redirect_uri='http://localhost:8888/callback',
-    scope='user-library-read user-read-playback-state user-modify-playback-state'))
+sp = spotipy.Spotify(
+    auth_manager=spotipy.SpotifyOAuth(
+        client_id=client_id,
+        client_secret=client_secret,
+        redirect_uri="http://localhost:8888/callback",
+        scope="user-library-read user-read-playback-state user-modify-playback-state",
+    )
+)
 
 os.environ["GEMINI_API_KEY"] = os.getenv("GEMINI_KEY")
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
@@ -71,14 +82,14 @@ system_instructions = (
     "Допустими са два типа отговори:\n\n"
     "1️⃣ Ако потребителят задава въпрос:\n"
     "{"
-    "\"response_type\": \"answer\", "
-    "\"answer\": \"тук е отговорът ти\""
+    '"response_type": "answer", '
+    '"answer": "тук е отговорът ти"'
     "}\n\n"
     "2️⃣ Ако потребителят иска действие (команда):\n"
     "{"
-    "\"response_type\": \"command\", "
-    "\"function\": \"името_на_функцията\", "
-    "\"parameters\": {\"параметър1\": \"стойност1\", \"параметър2\": \"стойност2\"}"
+    '"response_type": "command", '
+    '"function": "името_на_функцията", '
+    '"parameters": {"параметър1": "стойност1", "параметър2": "стойност2"}'
     "}\n\n"
     "Функции, които можеш да извикваш:\n"
     "- generate_message(user_input)\n"
@@ -92,11 +103,18 @@ system_instructions = (
     "- openWord()\n"
     "- recognize_song()\n\n"
     "Никога не добавяй нищо извън JSON формата. "
-    "Ако не си сигурен, върни {\"response_type\": \"answer\", \"answer\": \"Не съм сигурен, но мога да проверя.\"}"
+    'Ако не си сигурен, върни {"response_type": "answer", "answer": "Не съм сигурен, но мога да проверя."}'
 )
 
 
-chat = model.start_chat(history=[{"role": "user", "parts": [system_instructions], }])
+chat = model.start_chat(
+    history=[
+        {
+            "role": "user",
+            "parts": [system_instructions],
+        }
+    ]
+)
 
 # --- Setup ---
 pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
@@ -106,7 +124,7 @@ jarvis_responses = [
     "Тук съм, как мога да помогна?",
     "Слушам, как мога да Ви асистирам?",
     "Тук съм, как мога да помогна?",
-    "С какво мога да Ви бъда полезен?"
+    "С какво мога да Ви бъда полезен?",
 ]
 wake_word_detected = False
 
@@ -126,10 +144,13 @@ wake_word_detected = False
 #             print("⚠️ Spotify update error:", e)
 #         time.sleep(10)
 
+
 def setup_tray(ui):
     """Create and run the system tray icon for Vision."""
     try:
-        icon_path = os.path.join(os.path.dirname(__file__), "ui", "assets", "vision_logo.ico")
+        icon_path = os.path.join(
+            os.path.dirname(__file__), "ui", "assets", "vision_logo.ico"
+        )
         image = Image.open(icon_path)
 
         def on_show(icon, item):
@@ -141,16 +162,14 @@ def setup_tray(ui):
             icon.stop()
             os._exit(0)
 
-        menu = pystray.Menu(
-            item("Show Vision", on_show),
-            item("Exit", on_exit)
-        )
+        menu = pystray.Menu(item("Show Vision", on_show), item("Exit", on_exit))
 
         tray_icon = pystray.Icon("VISION", image, "VISION Assistant", menu)
         tray_icon.run()
 
     except Exception as e:
         print(f"[Tray Error] {e}")
+
 
 def handle_user_input(user_input):
     jarvis_voice = get_jarvis_voice()
@@ -208,22 +227,23 @@ def handle_user_input(user_input):
         else:
             print(f"⚠️ Function {function_name} not found")
 
+
 def chatbot():
     """
-       Main conversational loop for Vision (Слави).
+    Main conversational loop for Vision (Слави).
 
-       Responsibilities:
-           - Wait for the configured wake word (Jarvis name) before activating.
-           - Handle the main user query through Gemini and execute commands.
-           - Keep a "discussion window" open after each response to allow
-             short, natural follow-ups without repeating the wake word.
-           - Automatically return to idle when the timer expires or when the user
-             says a stop keyword (e.g. 'благодаря', 'спри', etc.).
+    Responsibilities:
+        - Wait for the configured wake word (Jarvis name) before activating.
+        - Handle the main user query through Gemini and execute commands.
+        - Keep a "discussion window" open after each response to allow
+          short, natural follow-ups without repeating the wake word.
+        - Automatically return to idle when the timer expires or when the user
+          says a stop keyword (e.g. 'благодаря', 'спри', etc.).
     """
     global wake_word_detected
 
     print("Welcome to Vision! Say 'exit' to quit.")
-    #generate_audio_from_text("На линия съм, извикайте ме когато имате нужда.", get_jarvis_voice())
+    # generate_audio_from_text("На линия съм, извикайте ме когато имате нужда.", get_jarvis_voice())
 
     update_user_settings()
     sync_user_photo()
@@ -232,7 +252,9 @@ def chatbot():
     while True:
         if not wake_word_detected:
             print("Waiting for wake word...")
-            user_input = record_text() # passive listening until the wake word is spoken
+            user_input = (
+                record_text()
+            )  # passive listening until the wake word is spoken
 
             if not user_input:
                 print("Sorry, I didn't catch that. Please try again.")
@@ -245,9 +267,9 @@ def chatbot():
 
             if jarvis_name in user_input_lower:
                 wake_word_detected = True
-                #pygame.mixer.music.load("sound_files/beep.flac")
-                #pygame.mixer.Sound(resource_path("sound_files/beep.flac"))
-                #pygame.mixer.music.play()
+                # pygame.mixer.music.load("sound_files/beep.flac")
+                # pygame.mixer.Sound(resource_path("sound_files/beep.flac"))
+                # pygame.mixer.music.play()
 
                 print("✅ Wake word detected!")
                 ui.set_state("answering")
@@ -280,8 +302,13 @@ def chatbot():
 
         # Common Keywords that end conversation
         stop_keywords = [
-            "спри", "благодаря", "благодаря ти", "край",
-            "чао", "довиждане", "нищо"
+            "спри",
+            "благодаря",
+            "благодаря ти",
+            "край",
+            "чао",
+            "довиждане",
+            "нищо",
         ]
 
         # Allow the user to speak again during the configured interval
@@ -296,7 +323,9 @@ def chatbot():
 
             # --- Exit keywords handling ---
             if any(kw in follow_up for kw in stop_keywords):
-                generate_audio_from_text("Няма за какво, ако има нещо - питай!", get_jarvis_voice())
+                generate_audio_from_text(
+                    "Няма за какво, ако има нещо - питай!", get_jarvis_voice()
+                )
                 ui.set_state("idle")
                 wake_word_detected = False
                 break
@@ -327,11 +356,12 @@ def main():
 
     # Start logic threads
     threading.Thread(target=chatbot, daemon=True).start()
-    #threading.Thread(target=update_spotify_status, daemon=True).start()
+    # threading.Thread(target=update_spotify_status, daemon=True).start()
     tray_thread = threading.Thread(target=lambda: setup_tray(ui), daemon=True)
     tray_thread.start()
 
     ui.exec()  # this keeps the window open
+
 
 if __name__ == "__main__":
     main()

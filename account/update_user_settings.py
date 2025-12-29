@@ -31,7 +31,9 @@ def update_user_settings():
         response = requests.post(LOGIN_API_URL, json=payload, timeout=10)
         response.raise_for_status()
         api_response = response.json()
-        print(f"[ℹ] API status: {api_response.get('status')}, message: {api_response.get('message')}")
+        print(
+            f"[ℹ] API status: {api_response.get('status')}, message: {api_response.get('message')}"
+        )
 
         if api_response.get("status") != "success" or "data" not in api_response:
             print("[⚠] Login failed or invalid API response.")
@@ -44,7 +46,7 @@ def update_user_settings():
         new_json = {
             "status": "success",
             "message": "Login successful.",
-            "data": user_data
+            "data": user_data,
         }
 
         with open(ACCOUNT_FILE, "w", encoding="utf-8") as f:

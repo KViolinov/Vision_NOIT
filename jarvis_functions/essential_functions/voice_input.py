@@ -1,7 +1,10 @@
 import os, speech_recognition as sr
 
 r = sr.Recognizer()
-sr.FLAC_CONVERTER = os.path.join(os.path.dirname(__file__), "important_files", "flac.exe")
+sr.FLAC_CONVERTER = os.path.join(
+    os.path.dirname(__file__), "important_files", "flac.exe"
+)
+
 
 def record_text(timeout=None):
     r = sr.Recognizer()
@@ -13,7 +16,9 @@ def record_text(timeout=None):
             listen_timeout = timeout if timeout is not None else 5
             phrase_limit = min(listen_timeout, 8) if timeout else 8
 
-            audio = r.listen(source, timeout=listen_timeout, phrase_time_limit=phrase_limit)
+            audio = r.listen(
+                source, timeout=listen_timeout, phrase_time_limit=phrase_limit
+            )
 
         try:
             text = r.recognize_google(audio, language="bg-BG")

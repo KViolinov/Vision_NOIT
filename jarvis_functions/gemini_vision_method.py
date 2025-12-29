@@ -8,7 +8,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from jarvis_functions.essential_functions.enhanced_elevenlabs import generate_audio_from_text
+from jarvis_functions.essential_functions.enhanced_elevenlabs import (
+    generate_audio_from_text,
+)
 from jarvis_functions.essential_functions.change_config_settings import get_jarvis_voice
 
 os.environ["GEMINI_API_KEY"] = os.getenv("GEMINI_KEY")
@@ -24,7 +26,14 @@ system_instruction = (
     "Осигурете, че всички отговори са фактологически точни и лесни за разбиране."
 )
 
-chat = model.start_chat(history=[{"role": "user","parts": [system_instruction],}])
+chat = model.start_chat(
+    history=[
+        {
+            "role": "user",
+            "parts": [system_instruction],
+        }
+    ]
+)
 
 
 def gemini_vision(set_state_callback=None):

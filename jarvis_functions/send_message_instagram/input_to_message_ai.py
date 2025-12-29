@@ -3,7 +3,9 @@ from jarvis_functions.send_message_instagram.send_message import *
 
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
+
 
 def generate_message(text: str):
     genai.configure(api_key=os.getenv("GEMINI_KEY"))

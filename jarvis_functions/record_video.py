@@ -10,6 +10,7 @@ from account.check_account import require_login
 
 pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
 
+
 @require_login
 def record_video(set_state_callback=None):
     if set_state_callback:
@@ -39,7 +40,12 @@ def record_video(set_state_callback=None):
     stop_flag = {"value": False}
 
     def listen_for_stop():
-        stop_phrases = ["спри видеото", "спри видео", "джарвис спри видеото", "джарвис спри видео"]
+        stop_phrases = [
+            "спри видеото",
+            "спри видео",
+            "джарвис спри видеото",
+            "джарвис спри видео",
+        ]
 
         while not stop_flag["value"]:
             text = record_text()
@@ -67,7 +73,7 @@ def record_video(set_state_callback=None):
         out.write(frame)
         cv2.imshow("Recording...", frame)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             stop_flag["value"] = True
             break
 

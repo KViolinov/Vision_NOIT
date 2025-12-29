@@ -5,8 +5,9 @@ import pyperclip
 
 from jarvis_functions.essential_functions.contact_locator import find_contact
 
+
 def send_message_to_instagram_user(target_username: str, message: str):
-    #url_to_open = get_url_for_username(target_username)
+    # url_to_open = get_url_for_username(target_username)
     url_to_open = find_contact(target_username, "линк")
 
     if url_to_open:
