@@ -13,7 +13,6 @@ import pystray
 from pystray import MenuItem as item
 from PIL import Image
 
-
 from dotenv import load_dotenv
 
 from jarvis_functions.essential_functions.enhanced_elevenlabs import (
@@ -53,6 +52,8 @@ from jarvis_functions.word_document import openWord
 
 from account.update_user_settings import update_user_settings
 from account.image_sync import sync_user_photo
+
+from jarvis_functions.essential_functions.first_time_check import check_launch_status
 
 from ui.vision_ui import VisionUI
 
@@ -243,7 +244,20 @@ def chatbot():
     global wake_word_detected
 
     print("Welcome to Vision! Say 'exit' to quit.")
-    # generate_audio_from_text("На линия съм, извикайте ме когато имате нужда.", get_jarvis_voice())
+
+    # Wait for a moment to ensure everything is loaded
+    time.sleep(5)
+
+    status = check_launch_status()
+    if status:
+        generate_audio_from_text(
+            "Здравейте, аз съм Слави - вашият личен гласов асистент. Ако желаете да ме извикате, просто кажете името ми. ",
+            get_jarvis_voice(),
+        )
+    else:
+        generate_audio_from_text(
+            "На линия съм, извикайте ме когато имате нужда.", get_jarvis_voice()
+        )
 
     update_user_settings()
     sync_user_photo()

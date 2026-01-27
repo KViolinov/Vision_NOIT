@@ -1,0 +1,4 @@
+- Test the settings page - sometimes lags (needs more investigation)
+- Add a button/slider for the user to choose what model to use (API/Local Model)
+- [VisionUI] Switching to state: answering - switching states not working, need fixing
+- Add login/sign up button on profile picture

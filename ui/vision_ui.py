@@ -4,7 +4,7 @@ import json
 from PySide6.QtWidgets import QApplication, QMainWindow
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWebChannel import QWebChannel
-from PySide6.QtCore import QObject, Signal, Slot, QUrl
+from PySide6.QtCore import QObject, Signal, Slot, QUrl, Qt
 
 
 # ==========================================
@@ -12,12 +12,19 @@ from PySide6.QtCore import QObject, Signal, Slot, QUrl
 # ==========================================
 class VisionBridge(QObject):
     """Bridge for JS <-> Python communication"""
+
     sendState = Signal(str)
     sendSpotify = Signal(str, str, bool)
     sendContacts = Signal(str)
 
     CONTACTS_FILE = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", "jarvis_functions", "essential_functions", "contacts.json")
+        os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "jarvis_functions",
+            "essential_functions",
+            "contacts.json",
+        )
     )
 
     def __init__(self, ui_instance):
@@ -56,12 +63,7 @@ class VisionBridge(QObject):
     @Slot(str, str, str, str, result=bool)
     def addContact(self, name, phone, email, link):
         """Add a new contact to contacts.json"""
-        new_contact = {
-            "Име": name,
-            "Телефон": phone,
-            "Имейл": email,
-            "Линк": link
-        }
+        new_contact = {"Име": name, "Телефон": phone, "Имейл": email, "Линк": link}
 
         try:
             contacts = json.loads(self.loadContacts())
@@ -94,12 +96,17 @@ class VisionBridge(QObject):
             print(f"[PY] ❌ Error deleting contact: {e}")
             return False
 
-
     # ==========================================
     # GENERAL SETTINGS HANDLING (config.json)
     # ==========================================
     CONFIG_FILE = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", "jarvis_functions", "essential_functions", "config.json")
+        os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "jarvis_functions",
+            "essential_functions",
+            "config.json",
+        )
     )
 
     @Slot(result=str)
@@ -147,15 +154,18 @@ class VisionBridge(QObject):
     @Slot(result=str)
     def loadApiKeys(self):
         from dotenv import dotenv_values
+
         data = dotenv_values(".env")
 
-        return json.dumps({
-            "GEMINI_KEY": data.get("GEMINI_KEY", ""),
-            "ELEVEN_LABS_API": data.get("ELEVEN_LABS_API", ""),
-            "SPOTIFY_CLIENT_ID": data.get("SPOTIFY_CLIENT_ID", ""),
-            "SPOTIFY_CLIENT_SECRET": data.get("SPOTIFY_CLIENT_SECRET", ""),
-            "DEEPSEEK_API_KEY": data.get("DEEPSEEK_API_KEY", "")
-        })
+        return json.dumps(
+            {
+                "GEMINI_KEY": data.get("GEMINI_KEY", ""),
+                "ELEVEN_LABS_API": data.get("ELEVEN_LABS_API", ""),
+                "SPOTIFY_CLIENT_ID": data.get("SPOTIFY_CLIENT_ID", ""),
+                "SPOTIFY_CLIENT_SECRET": data.get("SPOTIFY_CLIENT_SECRET", ""),
+                "DEEPSEEK_API_KEY": data.get("DEEPSEEK_API_KEY", ""),
+            }
+        )
 
     @Slot(str)
     def saveApiKeys(self, json_payload):
