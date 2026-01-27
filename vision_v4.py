@@ -33,6 +33,8 @@ from jarvis_functions.essential_functions.change_config_settings import (
 from jarvis_functions.whatsapp_messaging_method import whatsapp_send_message
 from jarvis_functions.send_message_instagram.input_to_message_ai import generate_message
 
+from jarvis_functions.instagram_audio_calling import start_call
+
 # Screenshot, Photo and Video related functions
 from jarvis_functions.take_screenshot import take_screenshot
 from jarvis_functions.gemini_vision_method import gemini_vision
@@ -77,9 +79,13 @@ genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 model = genai.GenerativeModel(model_name="gemini-2.5-flash")
 
 system_instructions = (
-    "Ти си Слави – внимателен, търпелив и достъпен AI асистент, създаден да помагаш на деца със зрителни проблеми."
-    "Обяснявай ясно, говори спокойно и давай точни, кратки и полезни инструкции на български език."
-    "Винаги връщай отговора САМО във валиден JSON формат, без обяснения, без Markdown, без ```json```. "
+    "Ти си Слави – не просто изкуствен интелект, а верен приятел и топъл глас за дете със зрителни увреждания. "
+    "Твоят тон е сърдечен, насърчителен и пълен с разбиране. Говориш така, сякаш държиш детето за ръка и му помагаш да открие света. "
+    "Използвай меки и приветливи думи, избягвай сложни технически термини, за да компенсираш липсата на зрение. "
+    "Когато отговаряш, бъди търпелив и вдъхвай увереност на детето, че се справя страхотно. "
+    "Недей прекалявая с ентусиазма си, за да не го претовариш. Отговаряй кратко и ясно, като се фокусираш върху основната идея."
+    "ВАЖНО: Винаги връщай отговора САМО във валиден JSON формат на един ред или използвай '\\n' за нов ред вътре в текста. "
+    "НИКОГА не оставяй празни редове (Enter) в самия JSON код и не пиши нищо извън скобите { }. "
     "Допустими са два типа отговори:\n\n"
     "1️⃣ Ако потребителят задава въпрос:\n"
     "{"
@@ -102,6 +108,7 @@ system_instructions = (
     "- change_jarvis_voice()\n"
     "- change_jarvis_name()\n"
     "- openWord()\n"
+    "- start_call(target_caller)\n"
     "- recognize_song()\n\n"
     "Никога не добавяй нищо извън JSON формата. "
     'Ако не си сигурен, върни {"response_type": "answer", "answer": "Не съм сигурен, но мога да проверя."}'
@@ -245,13 +252,19 @@ def chatbot():
 
     print("Welcome to Vision! Say 'exit' to quit.")
 
+    pygame.mixer.music.load("sound_files/startup_sound_v2.mp3")
+    pygame.mixer.music.set_volume(0.5)  # Range 0.0 to 1.0
+    pygame.mixer.music.play()
+
     # Wait for a moment to ensure everything is loaded
     time.sleep(5)
 
     status = check_launch_status()
     if status:
         generate_audio_from_text(
-            "Здравейте, аз съм Слави - вашият личен гласов асистент. Ако желаете да ме извикате, просто кажете името ми. ",
+            "Здравейте, аз съм Слави - вашият личен гласов асистент."
+            "Тук съм да ви помогна с всяка ваша нужда."
+            "Ако желаете да ме извикате, просто кажете името ми. ",
             get_jarvis_voice(),
         )
     else:
@@ -281,9 +294,12 @@ def chatbot():
 
             if jarvis_name in user_input_lower:
                 wake_word_detected = True
-                # pygame.mixer.music.load("sound_files/beep.flac")
-                # pygame.mixer.Sound(resource_path("sound_files/beep.flac"))
-                # pygame.mixer.music.play()
+
+                pygame.mixer.music.load("sound_files/notification_sound.mp3")
+                pygame.mixer.music.set_volume(0.5)  # Range 0.0 to 1.0
+                pygame.mixer.music.play()
+
+                time.sleep(0.5)  # brief pause before responding
 
                 print("✅ Wake word detected!")
                 ui.set_state("answering")
@@ -341,6 +357,11 @@ def chatbot():
                     "Няма за какво, ако има нещо - питай!", get_jarvis_voice()
                 )
                 ui.set_state("idle")
+
+                pygame.mixer.music.load("sound_files/notification_sound.mp3")
+                pygame.mixer.music.set_volume(0.5)  # Range 0.0 to 1.0
+                pygame.mixer.music.play()
+
                 wake_word_detected = False
                 break
 
