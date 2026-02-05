@@ -357,10 +357,3 @@ from jarvis_functions.essential_functions.contact_locator import find_contact
 #     print("\n⚠️  Clients will receive 'call 0889909595' every 20 s automatically.\n")
 #
 #     app.run(host='0.0.0.0', port=5000, debug=True)
-
-
-import qrcode
-
-img = qrcode.make("Some data here")
-type(img)  # qrcode.image.pil.PilImage
-img.save("some_file.png")

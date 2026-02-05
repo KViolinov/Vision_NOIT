@@ -7,6 +7,7 @@ import pygame
 import random
 import spotipy
 import threading
+import keyboard
 import google.generativeai as genai
 
 import pystray
@@ -19,6 +20,7 @@ from jarvis_functions.essential_functions.enhanced_elevenlabs import (
     generate_audio_from_text,
 )
 from jarvis_functions.essential_functions.voice_input import record_text
+from jarvis_functions.essential_functions.mic_state import toggle_mic, is_muted
 
 from jarvis_functions.essential_functions.change_config_settings import (
     get_jarvis_voice,
@@ -236,6 +238,15 @@ def handle_user_input(user_input):
             print(f"⚠️ Function {function_name} not found")
 
 
+def setup_mic_hotkey():
+    def on_toggle():
+        muted = toggle_mic()
+        state = "🔇 Микрофонът е изключен" if muted else "🎙️ Микрофонът е включен"
+        print(state)
+
+    keyboard.add_hotkey("m", on_toggle)
+
+
 def chatbot():
     """
     Main conversational loop for Vision (Слави).
@@ -279,9 +290,12 @@ def chatbot():
     while True:
         if not wake_word_detected:
             print("Waiting for wake word...")
-            user_input = (
-                record_text()
-            )  # passive listening until the wake word is spoken
+
+            if is_muted():  # ← HARD BLOCK
+                time.sleep(0.3)
+                continue
+
+            user_input = record_text()
 
             if not user_input:
                 print("Sorry, I didn't catch that. Please try again.")
@@ -292,7 +306,7 @@ def chatbot():
             jarvis_name = get_jarvis_name().lower()
             jarvis_voice = get_jarvis_voice()
 
-            if jarvis_name in user_input_lower:
+            if user_input != "__MIC_MUTED__" and jarvis_name in user_input_lower:
                 wake_word_detected = True
 
                 pygame.mixer.music.load("sound_files/notification_sound.mp3")
@@ -312,6 +326,13 @@ def chatbot():
                 continue
 
         print("Listening for commands...")
+
+        if is_muted():
+            wake_word_detected = False
+            ui.set_state("idle")
+            time.sleep(0.3)
+            continue
+
         user_input = record_text()
 
         if not user_input:
@@ -341,11 +362,20 @@ def chatbot():
             "нищо",
         ]
 
-        # Allow the user to speak again during the configured interval
         while time.time() - start_time < wait_seconds:
+            if is_muted():
+                wake_word_detected = False
+                ui.set_state("idle")
+                break
+
             follow_up = record_text(timeout=wait_seconds)
+
+            if follow_up == "__MIC_MUTED__":
+                wake_word_detected = False
+                ui.set_state("idle")
+                break
+
             if not follow_up:
-                # Nothing heard yet; keep waiting until timeout expires
                 continue
 
             follow_up = follow_up.lower().strip()
@@ -388,6 +418,8 @@ def chatbot():
 # --- MAIN ---
 def main():
     ui.show()
+
+    setup_mic_hotkey()
 
     # Start logic threads
     threading.Thread(target=chatbot, daemon=True).start()
