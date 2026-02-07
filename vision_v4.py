@@ -8,7 +8,9 @@ import random
 import spotipy
 import threading
 import keyboard
+
 import google.generativeai as genai
+from google.generativeai.types import generation_types
 
 import pystray
 from pystray import MenuItem as item
@@ -184,13 +186,39 @@ def setup_tray(ui):
 def handle_user_input(user_input):
     jarvis_voice = get_jarvis_voice()
 
-    response = chat.send_message(user_input)
-    text = response.text.strip()
+    # Safety check: if user_input is empty or None, return early
+    try:
+        response = chat.send_message(user_input)
 
+        if not response.parts or not response.text:
+            print("Response was blocked or empty. Returning to idle.")
+            ui.set_state("idle")
+            return
+
+        text = response.text.strip()
+
+    except generation_types.StopCandidateException as e:
+        print(f"⚠️ Response generation was blocked: {e}")
+
+        fallback = (
+            "Извинявай, не мога да отговоря на това. Може ли да опитаме с нещо друго?"
+        )
+        ui.set_state("speaking")
+        generate_audio_from_text(fallback, jarvis_voice)
+        ui.set_state("idle")
+        return
+
+    except Exception as e:
+        print(f"❌ Error during response generation: {e}")
+        ui.set_state("idle")
+        return
+
+    # Process the response
     try:
         clean_text = re.sub(r"```(?:json)?|```", "", text).strip()
         clean_text = clean_text.replace("'", '"')
         data = json.loads(clean_text)
+
     except json.JSONDecodeError as e:
         print(f"⚠️ Could not parse JSON: {e}")
         print("Raw response:", text)

@@ -1,10 +1,7 @@
 # TODO
-- To switch to the new version of google.genai !!!!!
+- To switch to the new version of google.genai - Works for now?
 - Test the settings page - sometimes lags (needs more investigation)
-- Add a button/slider for the user to choose what model to use (API/Local Model)
-- [VisionUI] Switching to state: answering - switching states not working, need fixing
 - Add login/sign up button on profile picture
-- To implement TailWind if possible and have time ig - https://tailwindcss.com/plus/ui-blocks/preview
 - To make it so i can "interrupt" Slavi with a keyboard shortcut
 
 # IN PROGRESS
@@ -13,3 +10,4 @@
 
 # DONE
 - Mute/Unmute button/shortcut
+- [VisionUI] Switching to state: answering - it kind of works, not perfect.
