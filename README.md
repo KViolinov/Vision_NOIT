@@ -1,3 +1,5 @@
+![Banner image](https://kvb-bg.com/Vision/assets/vision_logo2.png)
+
 # VISION  
 **Българският AI гласов асистент за деца със зрителни нарушения**
 
