@@ -3,7 +3,7 @@ import spotipy
 
 from dotenv import load_dotenv
 
-from account.check_account import require_login
+# from account.check_account import require_login
 
 
 load_dotenv()
@@ -24,7 +24,7 @@ sp = spotipy.Spotify(
 ac_dc_playlist_url = "spotify:playlist:1HbAhSztnIcp67DbQBRw9j?si=cd8a3c6e5d8a4e41"
 
 
-@require_login
+# @require_login
 def play_song(user_input: str):
     track_name = user_input
     result = sp.search(q=track_name, limit=1)
@@ -40,11 +40,11 @@ def play_song(user_input: str):
     sp.start_playback(device_id=pc_device_id, uris=[track_uri])
 
 
-@require_login
+# @require_login
 def play_music():
     sp.start_playback()  # Start playback (Play the song)
 
 
-@require_login
+# @require_login
 def pause_music():
     sp.pause_playback()  # Pause the playback (Stop the song)

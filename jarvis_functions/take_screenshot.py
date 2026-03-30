@@ -7,7 +7,7 @@ from jarvis_functions.essential_functions.enhanced_elevenlabs import (
     generate_audio_from_text,
 )
 
-from account.check_account import require_login
+# from account.check_account import require_login
 
 from dotenv import load_dotenv
 
@@ -20,7 +20,7 @@ genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 model = genai.GenerativeModel("gemini-2.5-flash")
 
 
-@require_login
+# @require_login
 def take_screenshot():
     screenshot = ImageGrab.grab()
 

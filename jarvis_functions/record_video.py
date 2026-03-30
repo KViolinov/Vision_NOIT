@@ -5,13 +5,14 @@ import pygame
 import threading
 
 from jarvis_functions.essential_functions.voice_input import record_text
-from account.check_account import require_login
+
+# from account.check_account import require_login
 
 
 pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
 
 
-@require_login
+# @require_login
 def record_video(set_state_callback=None):
     if set_state_callback:
         set_state_callback("recording")

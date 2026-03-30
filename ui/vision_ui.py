@@ -6,16 +6,17 @@ from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtCore import QObject, Signal, Slot, QUrl, Qt
 
+from account.auth_api import login, sign_up
 
-# ==========================================
+
 # BRIDGE: JS ↔ PYTHON COMMUNICATION
-# ==========================================
 class VisionBridge(QObject):
     """Bridge for JS <-> Python communication"""
 
     sendState = Signal(str)
     sendSpotify = Signal(str, str, bool)
     sendContacts = Signal(str)
+    sendMicStatus = Signal(bool)
 
     CONTACTS_FILE = os.path.abspath(
         os.path.join(
@@ -40,9 +41,7 @@ class VisionBridge(QObject):
     def onMessage(self, msg: str):
         print(f"[JS → PY]: {msg}")
 
-    # ==========================================
     # CONTACTS HANDLING
-    # ==========================================
     @Slot(result=str)
     def loadContacts(self):
         """Load contacts from contacts.json (used on page load)."""
@@ -96,9 +95,7 @@ class VisionBridge(QObject):
             print(f"[PY] ❌ Error deleting contact: {e}")
             return False
 
-    # ==========================================
     # GENERAL SETTINGS HANDLING (config.json)
-    # ==========================================
     CONFIG_FILE = os.path.abspath(
         os.path.join(
             os.path.dirname(__file__),
@@ -111,7 +108,6 @@ class VisionBridge(QObject):
 
     @Slot(result=str)
     def loadSettings(self):
-        """Load general settings from config.json"""
         try:
             if not os.path.exists(self.CONFIG_FILE):
                 print(f"[PY] ⚠️ config.json not found: {self.CONFIG_FILE}")
@@ -128,7 +124,6 @@ class VisionBridge(QObject):
 
     @Slot(str, str, str, int, result=bool)
     def saveSettings(self, name, voice, discussion_type, wait_time):
-        """Save updated settings into config.json"""
         try:
             if not os.path.exists(self.CONFIG_FILE):
                 print(f"[PY] ⚠️ config.json not found — creating new one")
@@ -188,10 +183,35 @@ class VisionBridge(QObject):
 
         print("API keys updated:", new_data)
 
+    # AUTH: LOGIN / SIGNUP
+    # ==========================================
+    # @Slot(str, str, result=str)
+    # def doLogin(self, email: str, password: str) -> str:
+    #     """Called from JS login form. Returns JSON result."""
+    #     success, message, user_data = login(email, password)
 
-# ==========================================
+    #     if success:
+    #         # Trigger photo sync in background
+    #         try:
+    #             from account.image_sync import sync_user_photo
+
+    #             sync_user_photo()
+    #         except Exception as e:
+    #             print(f"[⚠] Photo sync failed: {e}")
+
+    #     return json.dumps(
+    #         {"success": success, "message": message, "user": user_data or {}},
+    #         ensure_ascii=False,
+    #     )
+
+    # @Slot(str, str, str, result=str)
+    # def doSignUp(self, name: str, email: str, password: str) -> str:
+    #     """Called from JS signup form. Returns JSON result."""
+    #     success, message = sign_up(email, password, name=name)
+    #     return json.dumps({"success": success, "message": message}, ensure_ascii=False)
+
+
 # MAIN UI WINDOW (Single Page + Slide Settings)
-# ==========================================
 class VisionUI:
     def __init__(self, ui_folder="ui", start_page="index.html"):
         self.ui_folder = ui_folder
@@ -241,3 +261,8 @@ class VisionUI:
         """Update Spotify info on UI."""
         print(f"[VisionUI] Spotify → {song} / {artist} / playing={playing}")
         self.bridge.sendSpotify.emit(song, artist, playing)
+
+    def update_mic_status(self, muted: bool):
+        """Update microphone status on UI."""
+        print(f"[VisionUI] Microphone status → {'Muted' if muted else 'Unmuted'}")
+        self.bridge.sendMicStatus.emit(muted)

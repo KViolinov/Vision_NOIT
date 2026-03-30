@@ -10,12 +10,12 @@ from jarvis_functions.essential_functions.voice_input import record_text
 from jarvis_functions.essential_functions.change_config_settings import get_jarvis_voice
 from jarvis_functions.essential_functions.contact_locator import find_contact
 
-from account.check_account import require_login
+# from account.check_account import require_login
 
 jarvis_voice = get_jarvis_voice()
 
 
-@require_login
+# @require_login
 def whatsapp_send_message():
     generate_audio_from_text(
         text="На кого искате да пратя съобшение?", voice=jarvis_voice

@@ -1,6 +1,3 @@
-// ==========================================
-// 1. DOM ELEMENTS & VARIABLES
-// ==========================================
 const container = document.querySelector(".orb-container");
 const orb = container.querySelector(".orb");
 const eyes = document.querySelectorAll(".eye");
@@ -13,9 +10,7 @@ const commandHint = document.getElementById("command-hint");
 let bridge = null;
 let currentState = "idle";
 
-// ==========================================
 // 2. QT WEBCHANNEL BRIDGE SETUP
-// ==========================================
 if (typeof qt !== "undefined") {
     new QWebChannel(qt.webChannelTransport, function (channel) {
         bridge = channel.objects.bridge;
@@ -47,9 +42,7 @@ if (typeof qt !== "undefined") {
     console.warn("⚠️ [JS] Qt WebChannel not detected. Running in browser mode.");
 }
 
-// ==========================================
 // 3. STATE MANAGEMENT
-// ==========================================
 function switchState(newState) {
     console.log(`[Vision] Switching UI state to: ${newState}`);
     currentState = newState;
@@ -94,9 +87,7 @@ function hideHint() {
     if(commandHint) commandHint.style.opacity = "0";
 }
 
-// ==========================================
 // 4. ANIMATIONS (EYES)
-// ==========================================
 function randomEyeMovement() {
   if (currentState !== "camera") {
     const moveX = (Math.random() - 0.5) * 25;
@@ -119,10 +110,7 @@ setInterval(() => {
   }
 }, 2800);
 
-// ==========================================
 // 5. SETTINGS PANEL INTERACTION
-// ==========================================
-
 // Open
 if(settingsBtn) {
     settingsBtn.addEventListener("click", () => {
@@ -163,9 +151,7 @@ settingsTabs.forEach(tab => {
   });
 });
 
-// ==========================================
 // 6. CONTACTS LOGIC
-// ==========================================
 const contactListDiv = document.querySelector(".contact-list");
 const addContactBtn = document.getElementById("addContactBtn");
 
@@ -215,9 +201,7 @@ if(addContactBtn) {
     });
 }
 
-// ==========================================
 // 7. GENERAL SETTINGS LOGIC
-// ==========================================
 const saveGeneralBtn = document.getElementById("saveGeneralBtn");
 
 function loadSettings() {
@@ -254,9 +238,7 @@ if(saveGeneralBtn) {
     });
 }
 
-// ==========================================
 // 8. API KEYS LOGIC
-// ==========================================
 const saveApiBtn = document.getElementById("saveApiKeysBtn");
 
 function loadApiKeys() {
@@ -286,9 +268,7 @@ if(saveApiBtn) {
     });
 }
 
-// ==========================================
 // 9. WIDGETS & INIT
-// ==========================================
 window.addEventListener("DOMContentLoaded", () => {
    buildCalendar();
    loadWeather();
@@ -358,7 +338,8 @@ async function loadUserSettings() {
     else if (h < 18) txt = "Добър ден";
     
     const greetingEl = document.getElementById("greeting");
-    if(greetingEl) greetingEl.textContent = `${txt}, ${data.Name || "Sir"}`;
+    // if(greetingEl) greetingEl.textContent = `${txt}, ${data.Name || "Sir"}`;
+    if(greetingEl) greetingEl.textContent = `${txt}`;
 
   } catch (err) {
     console.error("Error loading user settings:", err);
@@ -366,22 +347,22 @@ async function loadUserSettings() {
 }
 
 // User Photo
-async function loadUserPhoto() {
-  try {
-    const photoEl = document.getElementById("user-photo");
-    if(!photoEl) return;
+// async function loadUserPhoto() {
+//   try {
+//     const photoEl = document.getElementById("user-photo");
+//     if(!photoEl) return;
 
-    const userPhoto = `assets/user_pfp.png?cb=${Date.now()}`;
-    const defaultPhoto = "assets/default_pfp.png";
+//     const userPhoto = `assets/user_pfp.png?cb=${Date.now()}`;
+//     const defaultPhoto = "assets/default_pfp.png";
 
-    const img = new Image();
-    img.onload = () => { photoEl.src = userPhoto; };
-    img.onerror = () => { photoEl.src = defaultPhoto; };
-    img.src = userPhoto;
-  } catch (err) {
-    console.error("Error loading user photo:", err);
-  }
-}
+//     const img = new Image();
+//     img.onload = () => { photoEl.src = userPhoto; };
+//     img.onerror = () => { photoEl.src = defaultPhoto; };
+//     img.src = userPhoto;
+//   } catch (err) {
+//     console.error("Error loading user photo:", err);
+//   }
+// }
 
 // ==========================================
 // 10. WALLPAPER PICKER
@@ -416,3 +397,175 @@ window.addEventListener("load", () => {
       }, 5200);
   }
 });
+
+// ==========================================
+// QT WEBCHANNEL BRIDGE SETUP (single place)
+// ==========================================
+function initializeBridge() {
+    if (typeof qt === "undefined" || !qt.webChannelTransport) {
+        console.warn("⚠️ Qt WebChannel transport not available yet. Retrying...");
+        setTimeout(initializeBridge, 300);
+        return;
+    }
+
+    new QWebChannel(qt.webChannelTransport, function(channel) {
+        bridge = channel.objects.bridge;
+        window.bridge = bridge; // for debugging / global access
+
+        if (!bridge) {
+            console.error("❌ Bridge object not found in channel");
+            return;
+        }
+
+        console.log("✅ [JS] Connected to Python bridge");
+
+        // ── Connect ALL signals here ──
+        bridge.sendState.connect(switchState);
+        bridge.sendSpotify.connect((song, artist, isPlaying) => {
+            console.log("[Spotify]", song, artist, isPlaying);
+            // update UI if you have spotify element
+        });
+        bridge.sendContacts.connect(renderContacts);
+
+        // The critical one that's failing
+        bridge.sendMicStatus.connect(function(muted) {
+            console.log("[JS] Mic status received:", muted ? "Muted" : "Unmuted");
+
+            const hud = document.getElementById("mic-hud");
+            if (!hud) {
+                console.warn("mic-hud element not found");
+                return;
+            }
+
+            const icon = document.getElementById("hud-icon");
+            const text = document.getElementById("hud-text");
+
+            if (muted) {
+                icon.textContent = "🔇";
+                text.textContent = "Микрофонът е Изключен";
+                hud.style.backgroundColor = "rgba(200, 50, 50, 0.3)";
+            } else {
+                icon.textContent = "🎙️";
+                text.textContent = "Микрофонът е Включен";
+                hud.style.backgroundColor = "rgba(50, 200, 100, 0.15)";
+            }
+
+            hud.classList.remove("mic-hud-hidden");
+            hud.classList.add("mic-hud-visible");
+
+            clearTimeout(window._micHudTimer);
+            window._micHudTimer = setTimeout(() => {
+                hud.classList.remove("mic-hud-visible");
+                hud.classList.add("mic-hud-hidden");
+            }, 3000);
+        });
+
+        // ── Initial data loads ──
+        loadContacts();
+        loadSettings();
+        loadApiKeys();
+    });
+}
+
+// Start the connection process
+initializeBridge();
+
+
+// ==========================================
+// AUTH MODAL
+// ==========================================
+// document.addEventListener("DOMContentLoaded", () => {
+//     const userPhoto = document.getElementById("user-photo");
+//     const authModal = document.getElementById("authModal");
+//     const authCloseBtn = document.querySelector(".auth-close");
+//     const authTabBtns = document.querySelectorAll(".auth-tab");
+//     const authPanelDivs = document.querySelectorAll(".auth-panel");
+
+//     // Safety check — if modal not in HTML yet, stop here
+//     if (!authModal || !userPhoto) {
+//         console.warn("⚠️ authModal or user-photo not found in DOM");
+//         return;
+//     }
+
+//     // Open modal on PFP click
+//     userPhoto.addEventListener("click", () => {
+//         console.log("[Auth] PFP clicked — opening modal");
+//         authModal.classList.add("active");
+//     });
+
+//     // Close on ✕ button
+//     authCloseBtn?.addEventListener("click", () => {
+//         authModal.classList.remove("active");
+//     });
+
+//     // Close on backdrop click
+//     authModal.addEventListener("click", (e) => {
+//         if (e.target === authModal) authModal.classList.remove("active");
+//     });
+
+//     // Tab switching (Вход / Регистрация)
+//     authTabBtns.forEach(tab => {
+//         tab.addEventListener("click", () => {
+//             authTabBtns.forEach(t => t.classList.remove("active"));
+//             authPanelDivs.forEach(p => p.classList.remove("active"));
+//             tab.classList.add("active");
+//             document.getElementById(tab.dataset.auth)?.classList.add("active");
+//         });
+//     });
+
+//     // LOGIN button
+//     document.getElementById("loginBtn")?.addEventListener("click", () => {
+//         const email = document.getElementById("login-email").value.trim();
+//         const pass  = document.getElementById("login-password").value.trim();
+//         if (!email || !pass) return alert("Попълнете всички полета!");
+
+//         if (bridge) {
+//             bridge.doLogin(email, pass, function(resultJson) {
+//                 const result = JSON.parse(resultJson);
+//                 if (result.success) {
+//                     const greetingEl = document.getElementById("greeting");
+//                     if (greetingEl && result.user.Name) {
+//                         const h = new Date().getHours();
+//                         const txt = h < 12 ? "Добро утро" : h < 18 ? "Добър ден" : "Добър вечер";
+//                         greetingEl.textContent = `${txt}, ${result.user.Name}`;
+//                     }
+//                     loadUserPhoto();
+//                     authModal.classList.remove("active");
+//                 } else {
+//                     alert("❌ " + result.message);
+//                 }
+//             });
+//         } else {
+//             // Browser test mode (no Qt)
+//             console.log("[Auth] Login →", email, pass);
+//             authModal.classList.remove("active");
+//         }
+//     });
+
+//     // SIGNUP button
+//     document.getElementById("signupBtn")?.addEventListener("click", () => {
+//         const name  = document.getElementById("signup-name").value.trim();
+//         const email = document.getElementById("signup-email").value.trim();
+//         const pass  = document.getElementById("signup-password").value.trim();
+//         if (!name || !email || !pass) return alert("Попълнете всички полета!");
+
+//         if (bridge) {
+//             bridge.doSignUp(name, email, pass, function(resultJson) {
+//                 const result = JSON.parse(resultJson);
+//                 if (result.success) {
+//                     alert("✅ " + result.message);
+//                     // Auto-switch to login tab
+//                     authTabBtns.forEach(t => t.classList.remove("active"));
+//                     authPanelDivs.forEach(p => p.classList.remove("active"));
+//                     document.querySelector('[data-auth="login"]').classList.add("active");
+//                     document.getElementById("login").classList.add("active");
+//                     document.getElementById("login-email").value = email;
+//                 } else {
+//                     alert("❌ " + result.message);
+//                 }
+//             });
+//         } else {
+//             console.log("[Auth] Signup →", name, email, pass);
+//         }
+//     });
+// });

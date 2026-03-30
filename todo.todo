@@ -3,6 +3,9 @@
 - Test the settings page - sometimes lags (needs more investigation)
 - Add login/sign up button on profile picture
 - To make it so i can "interrupt" Slavi with a keyboard shortcut
+- To make signup/login page and connect it to the database in railway
+- To fix the issue with creating more then one account with the same information 
+- To add the function to for the user to choose their photo for pfp
 
 # IN PROGRESS
 - To make Slavi not so robot-ick. More human-ish.

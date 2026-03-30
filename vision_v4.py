@@ -56,10 +56,12 @@ from jarvis_functions.word_document import openWord
 #     readMail, send_email
 # )
 
-from account.update_user_settings import update_user_settings
-from account.image_sync import sync_user_photo
+# from account.update_user_settings import update_user_settings
+# from account.image_sync import sync_user_photo
 
 from jarvis_functions.essential_functions.first_time_check import check_launch_status
+
+from jarvis_functions.essential_functions.home_server import ask_local_model
 
 from ui.vision_ui import VisionUI
 
@@ -106,17 +108,17 @@ system_instructions = (
     '"parameters": {"параметър1": "стойност1", "параметър2": "стойност2"}'
     "}\n\n"
     "Функции, които можеш да извикваш:\n"
-    "- generate_message(user_input)\n"
-    "- gemini_vision()\n"
+    "- generate_message(user_input) - Извикай тази фунцкия когато потребителя иска да изпратиш съобщение.\n"
+    "- gemini_vision() - Извикай тази функция ВЕДНАГА щом потребителят попита 'какво виждаш', 'какво има пред мен', 'погледни' или иска да му опишеш обекти чрез камерата.\n"
     "- take_screenshot()\n"
     "- record_video()\n"
-    "- play_song(user_input)\n"
+    "- play_song(user_input) - Извикай тази функция щом потребителят попита да му пуснеш песен.\n"
     "- pause_music()\n"
     "- change_jarvis_voice()\n"
     "- change_jarvis_name()\n"
-    "- openWord()\n"
+    "- openWord() - Извикай тази фунцкия когато потребителя иска да му отвориш word документ.\n"
     "- start_call(target_caller)\n"
-    "- recognize_song()\n\n"
+    "- recognize_song() - Извикай тази фунцкия когато потрбителя иска да разпознаеш песен.\n\n"
     "Никога не добавяй нищо извън JSON формата. "
     'Ако не си сигурен, върни {"response_type": "answer", "answer": "Не съм сигурен, но мога да проверя."}'
 )
@@ -191,7 +193,8 @@ def handle_user_input(user_input):
 
     # Safety check: if user_input is empty or None, return early
     try:
-        response = chat.send_message(user_input)
+        # response = chat.send_message(user_input) # for gemini
+        response = ask_local_model(user_input)  # needs testing
 
         if not response.parts or not response.text:
             print("Response was blocked or empty. Returning to idle.")
@@ -219,7 +222,6 @@ def handle_user_input(user_input):
     # Process the response
     try:
         clean_text = re.sub(r"```(?:json)?|```", "", text).strip()
-        clean_text = clean_text.replace("'", '"')
         data = json.loads(clean_text)
 
     except json.JSONDecodeError as e:
@@ -272,7 +274,14 @@ def handle_user_input(user_input):
 def setup_mic_hotkey():
     def on_toggle():
         muted = toggle_mic()
+
+        ui.update_mic_status(muted)
+
         state = "🔇 Микрофонът е изключен" if muted else "🎙️ Микрофонът е включен"
+        pygame.mixer.music.load("sound_files/mic_mute_unmute_sound.mp3")
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play()
+
         print(state)
 
     keyboard.add_hotkey("m", on_toggle)
@@ -280,15 +289,7 @@ def setup_mic_hotkey():
 
 def chatbot():
     """
-    Main conversational loop for Vision (Слави).
-
-    Responsibilities:
-        - Wait for the configured wake word (Jarvis name) before activating.
-        - Handle the main user query through Gemini and execute commands.
-        - Keep a "discussion window" open after each response to allow
-          short, natural follow-ups without repeating the wake word.
-        - Automatically return to idle when the timer expires or when the user
-          says a stop keyword (e.g. 'благодаря', 'спри', etc.).
+    Main conversational loop for Vision.
     """
     global wake_word_detected
 
@@ -314,8 +315,8 @@ def chatbot():
             "На линия съм, извикайте ме когато имате нужда.", get_jarvis_voice()
         )
 
-    update_user_settings()
-    sync_user_photo()
+    # update_user_settings()
+    # sync_user_photo()
 
     # --- Main loop: runs indefinitely, alternating between idle and active states ---
     while True:

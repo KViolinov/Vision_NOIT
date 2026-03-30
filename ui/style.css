@@ -60,6 +60,7 @@ body::after {
     0 0 120px rgba(100, 150, 255, 0.4),
     inset 0 0 60px rgba(100, 150, 255, 0.2);
   transition: all 0.8s ease-in-out;
+  pointer-events: auto;
 }
 
 .orb {
@@ -394,6 +395,8 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 50;          /* below user-header (100) */
+  pointer-events: none; /* orb is visual only — clicks pass through */
 }
 
 /* ----- Sliding Settings Panel ----- */
@@ -1291,3 +1294,143 @@ body {
 .orb[data-state="speaking"] {
   box-shadow: 0 0 160px var(--speaking);
 }
+
+/* --- MIC HUD OVERLAY --- */
+#mic-hud {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    width: 200px;
+    height: 200px;
+    background: rgba(16, 16, 26, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#mic-hud.visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.hud-icon-wrapper {
+    font-size: 60px;
+    margin-bottom: 15px;
+    filter: drop-shadow(0 0 10px rgba(77, 163, 255, 0.5));
+}
+
+#hud-text {
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+}
+
+/* Red theme for muted state */
+#mic-hud.is-muted .hud-icon-wrapper {
+    filter: drop-shadow(0 0 10px rgba(255, 50, 50, 0.5));
+}
+
+#mic-hud.is-muted #hud-text {
+    color: #ff4d4d;
+}
+
+.mic-hud-hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-20px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.mic-hud-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* ==========================================
+   AUTH MODAL
+   ========================================== */
+.auth-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+.auth-modal-overlay.active {
+  display: flex;
+}
+
+.auth-modal {
+  position: relative;
+  background: rgba(15, 15, 30, 0.92);
+  border: 1px solid rgba(100, 150, 255, 0.25);
+  border-radius: 18px;
+  padding: 36px 32px 28px;
+  width: 360px;
+  box-shadow: 0 0 40px rgba(77, 163, 255, 0.2);
+  animation: authSlideIn 0.3s ease;
+}
+
+@keyframes authSlideIn {
+  from { opacity: 0; transform: translateY(-24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.auth-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  font-size: 18px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.auth-close:hover { color: #fff; }
+
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 9px 0;
+  border-radius: 8px;
+  border: 1px solid rgba(100, 150, 255, 0.2);
+  background: transparent;
+  color: rgba(255,255,255,0.45);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.auth-tab.active {
+  background: rgba(77, 163, 255, 0.18);
+  border-color: rgba(77, 163, 255, 0.5);
+  color: #fff;
+}
+
+.auth-panel { display: none; }
+.auth-panel.active { display: block; }

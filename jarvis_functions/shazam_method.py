@@ -18,7 +18,8 @@ from jarvis_functions.essential_functions.voice_input import record_text
 from jarvis_functions.play_spotify import play_song
 
 from jarvis_functions.essential_functions.change_config_settings import get_jarvis_voice
-from account.check_account import require_login
+
+# from account.check_account import require_login
 
 jarvis_voice = get_jarvis_voice()
 
@@ -46,7 +47,7 @@ def save_audio_to_wav(audio_data, samplerate=44100):
 
 
 # Synchronous function to recognize audio
-@require_login
+# @require_login
 def recognize_song():
     generate_audio_from_text(
         text="Няма проблем, дайте ми само една секунда.", voice=jarvis_voice

@@ -135,6 +135,14 @@
     </div>
   </div>
 
+  <div id="mic-hud" class="mic-hud-hidden">
+    <div class="hud-icon-wrapper">
+        <span id="hud-icon">🎙️</span>
+    </div>
+    <div id="hud-text">Микрофонът е Включен</div>
+</div>
+
+
  <div class="container">
      <div class="glass-card widget-weather">
         <div class="weather-main">
@@ -227,7 +235,6 @@
   <div class="user-header">
     <img id="user-photo" src="assets/default_pfp.png" class="user-photo">
     <span id="greeting"></span>
-
     <button class="settings-btn" title="Настройки">
       <img src="assets/settings_icon.png" class="settings-icon">
     </button>
@@ -365,6 +372,49 @@
       </div>
     </div>
   </div>
+
+  <!-- === LOGIN / SIGNUP MODAL ===
+  <div id="authModal" class="auth-modal-overlay">
+    <div class="auth-modal">
+      <button class="auth-close">✕</button>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-auth="login">Вход</button>
+        <button class="auth-tab" data-auth="signup">Регистрация</button>
+      </div> -->
+
+      <!-- LOGIN -->
+      <!-- <div id="login" class="auth-panel active">
+        <div class="form-group">
+          <label>Имейл</label>
+          <input type="email" id="login-email" placeholder="your@email.com" />
+        </div>
+        <div class="form-group">
+          <label>Парола</label>
+          <input type="password" id="login-password" placeholder="••••••••" />
+        </div>
+        <button class="btn" id="loginBtn" style="width:100%;">Влез</button>
+      </div> -->
+
+      <!-- SIGNUP -->
+      <!--<div id="signup" class="auth-panel">
+        <div class="form-group">
+          <label>Име</label>
+          <input type="text" id="signup-name" placeholder="Вашето име" />
+        </div>
+        <div class="form-group">
+          <label>Имейл</label>
+          <input type="email" id="signup-email" placeholder="your@email.com" />
+        </div>
+        <div class="form-group">
+          <label>Парола</label>
+          <input type="password" id="signup-password" placeholder="••••••••" />
+        </div>
+        <button class="btn" id="signupBtn" style="width:100%;">Регистрирай се</button>
+      </div>
+
+    </div>
+  </div> -->
 
   <script src="script.js"></script>
 </body>
