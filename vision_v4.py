@@ -9,8 +9,8 @@ import spotipy
 import threading
 import keyboard
 
-import google.generativeai as genai
-from google.generativeai.types import generation_types
+from google import genai
+from google.genai import types, errors
 
 import pystray
 from pystray import MenuItem as item
@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 from jarvis_functions.essential_functions.enhanced_elevenlabs import (
     generate_audio_from_text,
 )
+
 from jarvis_functions.essential_functions.voice_input import record_text
 from jarvis_functions.essential_functions.mic_state import toggle_mic, is_muted
 
@@ -60,6 +61,7 @@ from jarvis_functions.word_document import openWord
 # from account.image_sync import sync_user_photo
 
 from jarvis_functions.essential_functions.first_time_check import check_launch_status
+from jarvis_functions.essential_functions.version_checking import check_for_update
 
 from jarvis_functions.essential_functions.home_server import ask_local_model
 
@@ -67,6 +69,7 @@ from ui.vision_ui import VisionUI
 
 load_dotenv()
 
+PROJECT_VERSION = "2.0.0"
 
 client_id = os.getenv("SPOTIFY_CLIENT_ID")
 client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
@@ -79,12 +82,8 @@ sp = spotipy.Spotify(
     )
 )
 
-os.environ["GEMINI_API_KEY"] = os.getenv("GEMINI_KEY")
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
-model = genai.GenerativeModel(model_name="gemini-2.5-flash")
-
-system_instructions = (
+SYSTEM_INSTRUCTIONS = (
     "Ти си Слави – верен приятел и надежден помощник за дете със зрителни увреждания. "
     "Твоят тон е спокоен, уверен и практичен, като на готин по-голям брат. "
     "Говори директно и ясно. Избягвай излишната емоционалност, снизходителното отношение и патетичните думи. "
@@ -123,27 +122,60 @@ system_instructions = (
     'Ако не си сигурен, върни {"response_type": "answer", "answer": "Не съм сигурен, но мога да проверя."}'
 )
 
-
-chat = model.start_chat(
-    history=[
-        {
-            "role": "user",
-            "parts": [system_instructions],
-        }
-    ]
+client = genai.Client(api_key=os.getenv("GEMINI_KEY"))
+MODEL_CONFIG = types.GenerateContentConfig(
+    system_instruction=SYSTEM_INSTRUCTIONS,
+    response_mime_type="application/json",  # Native JSON support!
+    temperature=0.7,
 )
+
+chat_session = client.chats.create(model="gemini-2.5-flash", config=MODEL_CONFIG)
 
 # --- Setup ---
 pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
 ui = VisionUI("ui", "index.html")
 
-jarvis_responses = [
+JARVIS_RESPONCES = [
     "Тук съм, как мога да помогна?",
     "Слушам, как мога да Ви асистирам?",
     "Тук съм, как мога да помогна?",
     "С какво мога да Ви бъда полезен?",
 ]
+
+STOP_KEYWORDS = frozenset(
+    [
+        "спри",
+        "благodarя",
+        "благodarя ти",
+        "край",
+        "чаo",
+        "довиждане",
+        "нищо",
+    ]
+)
+
+STARTUP_SOUND = "sound_files/startup_sound_v2.mp3"
+NOTIFICATION_SOUND = "sound_files/notification_sound.mp3"
+MIC_TOGGLE_SOUND = "sound_files/mic_mute_unmute_sound.mp3"
+DEFAULT_VOLUME = 0.5
+WAKE_WORD_DELAY = 0.5
+
 wake_word_detected = False
+
+COMMAND_REGISTRY = {
+    "generate_message": generate_message,
+    "gemini_vision": gemini_vision,
+    "take_screenshot": take_screenshot,
+    "record_video": record_video,
+    "play_song": play_song,
+    "pause_music": pause_music,
+    "change_jarvis_voice": change_jarvis_voice,
+    "change_jarvis_name": change_jarvis_name,
+    "openWord": openWord,
+    "start_call": start_call,
+    "recognize_song": recognize_song,
+}
+
 
 # --- Threads ---
 # def update_spotify_status():
@@ -193,43 +225,37 @@ def handle_user_input(user_input):
 
     # Safety check: if user_input is empty or None, return early
     try:
-        # response = chat.send_message(user_input) # for gemini
-        response = ask_local_model(user_input)  # needs testing
+        response = chat_session.send_message(user_input)  # for gemini
+        # response = ask_local_model(user_input)  # needs testing
 
-        if not response.parts or not response.text:
+        if not response.parts:
             print("Response was blocked or empty. Returning to idle.")
             ui.set_state("idle")
             return
 
-        text = response.text.strip()
+        data = json.loads(response.text)
 
-    except generation_types.StopCandidateException as e:
-        print(f"⚠️ Response generation was blocked: {e}")
-
-        fallback = (
-            "Извинявай, не мога да отговоря на това. Може ли да опитаме с нещо друго?"
-        )
-        ui.set_state("speaking")
-        generate_audio_from_text(fallback, jarvis_voice)
+    except errors.ClientError as e:
+        print(f"❌ Gemini API Error: {e}")
         ui.set_state("idle")
         return
-
-    except Exception as e:
-        print(f"❌ Error during response generation: {e}")
+    except json.JSONDecodeError:
+        print("⚠️ Failed to parse JSON. Falling back to text.")
+        generate_audio_from_text(response.text, jarvis_voice)
         ui.set_state("idle")
         return
 
     # Process the response
-    try:
-        clean_text = re.sub(r"```(?:json)?|```", "", text).strip()
-        data = json.loads(clean_text)
+    # try:
+    #     clean_text = re.sub(r"```(?:json)?|```", "", text).strip()
+    #     data = json.loads(clean_text)
 
-    except json.JSONDecodeError as e:
-        print(f"⚠️ Could not parse JSON: {e}")
-        print("Raw response:", text)
-        generate_audio_from_text(text, jarvis_voice)
-        ui.set_state("idle")
-        return
+    # except json.JSONDecodeError as e:
+    #     print(f"⚠️ Could not parse JSON: {e}")
+    #     print("Raw response:", text)
+    #     generate_audio_from_text(text, jarvis_voice)
+    #     ui.set_state("idle")
+    #     return
 
     if data.get("response_type") == "answer":
         answer = data.get("answer", "")
@@ -240,7 +266,8 @@ def handle_user_input(user_input):
     elif data.get("response_type") == "command":
         function_name = data.get("function")
         params = data.get("parameters", {})
-        func = globals().get(function_name)
+
+        func = COMMAND_REGISTRY.get(function_name)
 
         if func:
             try:
@@ -287,22 +314,23 @@ def setup_mic_hotkey():
     keyboard.add_hotkey("m", on_toggle)
 
 
+def _play_sound(path: str, volume: float = 0.5):
+    pygame.mixer.music.load(path)
+    pygame.mixer.music.set_volume(volume)
+    pygame.mixer.music.play()
+
+
 def chatbot():
-    """
-    Main conversational loop for Vision.
-    """
     global wake_word_detected
 
     print("Welcome to Vision! Say 'exit' to quit.")
 
-    pygame.mixer.music.load("sound_files/startup_sound_v2.mp3")
-    pygame.mixer.music.set_volume(0.5)  # Range 0.0 to 1.0
-    pygame.mixer.music.play()
+    _play_sound(STARTUP_SOUND, DEFAULT_VOLUME)
 
-    # Wait for a moment to ensure everything is loaded
-    time.sleep(5)
+    time.sleep(5)  # Wait for a moment to ensure everything is loaded
 
     status = check_launch_status()
+
     if status:
         generate_audio_from_text(
             "Здравейте, аз съм Слави - вашият личен гласов асистент."
@@ -318,7 +346,9 @@ def chatbot():
     # update_user_settings()
     # sync_user_photo()
 
-    # --- Main loop: runs indefinitely, alternating between idle and active states ---
+    check_for_update(PROJECT_VERSION)
+
+    # Main loop
     while True:
         if not wake_word_detected:
             print("Waiting for wake word...")
@@ -341,16 +371,14 @@ def chatbot():
             if user_input != "__MIC_MUTED__" and jarvis_name in user_input_lower:
                 wake_word_detected = True
 
-                pygame.mixer.music.load("sound_files/notification_sound.mp3")
-                pygame.mixer.music.set_volume(0.5)  # Range 0.0 to 1.0
-                pygame.mixer.music.play()
+                _play_sound(NOTIFICATION_SOUND, volume=DEFAULT_VOLUME)
 
-                time.sleep(0.5)  # brief pause before responding
+                time.sleep(WAKE_WORD_DELAY)  # brief pause before responding
 
                 print("✅ Wake word detected!")
                 ui.set_state("answering")
 
-                response = random.choice(jarvis_responses)
+                response = random.choice(JARVIS_RESPONCES)
                 generate_audio_from_text(text=response, voice=jarvis_voice)
 
                 ui.set_state("thinking")
@@ -383,17 +411,6 @@ def chatbot():
         ui.set_state("listening")
         follow_up_received = False
 
-        # Common Keywords that end conversation
-        stop_keywords = [
-            "спри",
-            "благодаря",
-            "благодаря ти",
-            "край",
-            "чао",
-            "довиждане",
-            "нищо",
-        ]
-
         while time.time() - start_time < wait_seconds:
             if is_muted():
                 wake_word_detected = False
@@ -414,15 +431,13 @@ def chatbot():
             print("💬 Follow-up detected:", follow_up)
 
             # --- Exit keywords handling ---
-            if any(kw in follow_up for kw in stop_keywords):
+            if any(kw in follow_up for kw in STOP_KEYWORDS):
                 generate_audio_from_text(
                     "Няма за какво, ако има нещо - питай!", get_jarvis_voice()
                 )
                 ui.set_state("idle")
 
-                pygame.mixer.music.load("sound_files/notification_sound.mp3")
-                pygame.mixer.music.set_volume(0.5)  # Range 0.0 to 1.0
-                pygame.mixer.music.play()
+                _play_sound(NOTIFICATION_SOUND, DEFAULT_VOLUME)
 
                 wake_word_detected = False
                 break
@@ -432,15 +447,12 @@ def chatbot():
             handle_user_input(follow_up)
 
             if discussion_type == "once":
-                # "once" mode: only allow one follow-up before going idle
-                break
+                break  # "once" mode: only allow one follow-up before going idle
             else:
-                # "continuous" mode: reset timer so conversation can flow naturally
-                start_time = time.time()
+                start_time = (
+                    time.time()
+                )  # "continuous" mode: reset timer so conversation can flow naturally
 
-        # --- Timeout fallback ---
-        # If no follow-up speech detected within the discussion window,
-        # gracefully return to idle and resume wake-word listening.
         if not follow_up_received:
             print("💤 No further input, returning to idle...")
             ui.set_state("idle")
