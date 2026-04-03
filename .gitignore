@@ -96,5 +96,5 @@ account/user_settings.json
 nuitka-crash-report.xml
 build.bat
 .pytest_cache
-testing.py*
+testing.py
 vision_v4.exe
