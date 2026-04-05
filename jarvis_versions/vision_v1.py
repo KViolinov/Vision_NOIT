@@ -17,7 +17,7 @@ from elevenlabs.client import ElevenLabs
 
 from dotenv import load_dotenv
 
-from jarvis_functions.shazam_method import recognize_audio
+from jarvis_functions.song_recognition import recognize_audio
 from jarvis_functions.play_spotify import play_song, pause_music
 from jarvis_functions.whatsapp_messaging_method import whatsapp_send_message
 from jarvis_functions.send_message_instagram.send_message import *
@@ -27,7 +27,7 @@ from jarvis_functions.take_screenshot import take_screenshot
 from jarvis_functions.word_document import openWord
 from jarvis_functions.mail_related import send_email, create_appointment, readMail
 
-#from api_keys.api_keys import ELEVEN_LABS_API, GEMINI_KEY, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
+# from api_keys.api_keys import ELEVEN_LABS_API, GEMINI_KEY, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
 
 load_dotenv()
 
@@ -41,11 +41,14 @@ r = sr.Recognizer()
 # Seting up spotify
 client_id = os.getenv("SPOTIFY_CLIENT_ID")
 client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
-sp = spotipy.Spotify(auth_manager=spotipy.SpotifyOAuth(
-    client_id=client_id,
-    client_secret=client_secret,
-    redirect_uri='http://localhost:8888/callback',
-    scope='user-library-read user-read-playback-state user-modify-playback-state'))  # Scope for currently playing song
+sp = spotipy.Spotify(
+    auth_manager=spotipy.SpotifyOAuth(
+        client_id=client_id,
+        client_secret=client_secret,
+        redirect_uri="http://localhost:8888/callback",
+        scope="user-library-read user-read-playback-state user-modify-playback-state",
+    )
+)  # Scope for currently playing song
 
 
 os.environ["GEMINI_API_KEY"] = os.getenv("GEMINI_KEY")
@@ -77,8 +80,14 @@ system_instruction = (
 )
 
 
-
-chat = model.start_chat(history=[{"role": "user","parts": [system_instruction],}])
+chat = model.start_chat(
+    history=[
+        {
+            "role": "user",
+            "parts": [system_instruction],
+        }
+    ]
+)
 
 # Screen Dimensions
 # info = pygame.display.Info()
@@ -103,6 +112,7 @@ class Color(Enum):
     PINK2 = (255, 105, 180)  # Hot Pink
     PURPLE1 = (166, 0, 255)
     PURPLE2 = (176, 28, 255)
+
 
 # Visual Config
 font_large = pygame.font.Font(None, 48)
@@ -137,15 +147,22 @@ target_color_2 = list(Color.CYAN.value)
 color_transition_speed = 10
 
 # Ball initial random positions
-random_particles = [{"x": random.randint(0, WIDTH), "y": random.randint(0, HEIGHT),
-                     "dx": random.uniform(-2, 2), "dy": random.uniform(-2, 2)} for _ in range(num_particles)]
+random_particles = [
+    {
+        "x": random.randint(0, WIDTH),
+        "y": random.randint(0, HEIGHT),
+        "dx": random.uniform(-2, 2),
+        "dy": random.uniform(-2, 2),
+    }
+    for _ in range(num_particles)
+]
 
 jarvis_responses = [
     "Тук съм, как мога да помогна?",
     "Слушам, как мога да Ви асистирам?",
     "Тук съм, как мога да помогна?",
-    "С какво мога да Ви бъда полезен?"
-    #"Слушам шефе, как да помогна?"
+    "С какво мога да Ви бъда полезен?",
+    # "Слушам шефе, как да помогна?"
 ]
 
 selected_songs = [
@@ -158,7 +175,7 @@ selected_songs = [
     "September - Earth, Wind & Fire",
     "Should I Stay or Should I Go - Remastered",
     "If You Want Blood(You've Got It) - AC/DC",
-    "Welcome Tо The Jungle - Guns N' Roses"
+    "Welcome Tо The Jungle - Guns N' Roses",
 ]
 
 status_list = []
@@ -166,7 +183,7 @@ status_list = []
 jarvis_name = "Джарвис"
 
 voices = ["Brian", "Jessica", "Roger", "Samantha"]
-jarvis_voice = voices[0] #deffault voice
+jarvis_voice = voices[0]  # deffault voice
 
 model_answering = False
 is_collided = False
@@ -185,6 +202,7 @@ selected_model = models[0]
 dropdown_open = False
 dropdown_rect = pygame.Rect(20, 120, 150, 30)
 
+
 def blend_color(current, target, speed):
     """Gradually transitions the current color toward the target color."""
     for i in range(3):
@@ -194,6 +212,7 @@ def blend_color(current, target, speed):
         else:
             current[i] = target[i]
 
+
 def draw_particles(surface, particles, target_mode=False):
     """Draws particles on the surface. If target_mode is True, arrange them in a circle and pulse."""
     global angle, pulse_factor
@@ -201,14 +220,24 @@ def draw_particles(surface, particles, target_mode=False):
     for i, particle in enumerate(particles):
         if target_mode:
             # Calculate target circular positions
-            target_x = center[0] + math.cos(math.radians(angle + i * 360 / len(particles))) * max_radius
-            target_y = center[1] + math.sin(math.radians(angle + i * 360 / len(particles))) * max_radius
+            target_x = (
+                center[0]
+                + math.cos(math.radians(angle + i * 360 / len(particles))) * max_radius
+            )
+            target_y = (
+                center[1]
+                + math.sin(math.radians(angle + i * 360 / len(particles))) * max_radius
+            )
             # Smoothly move particles towards their circular positions
             particle["x"] += (target_x - particle["x"]) * 0.05
             particle["y"] += (target_y - particle["y"]) * 0.05
 
             # Pulse effect
-            pulse_factor = min(max_size, pulse_factor + pulse_speed) if pulse_factor < max_size else max(min_size, pulse_factor - pulse_speed)
+            pulse_factor = (
+                min(max_size, pulse_factor + pulse_speed)
+                if pulse_factor < max_size
+                else max(min_size, pulse_factor - pulse_speed)
+            )
         else:
             # Move particles randomly when in default mode
             particle["x"] += particle["dx"]
@@ -221,7 +250,13 @@ def draw_particles(surface, particles, target_mode=False):
                 particle["dy"] *= -1
 
         # Draw the particle
-        pygame.draw.circle(surface, tuple(current_color_2), (int(particle["x"]), int(particle["y"])), int(pulse_factor))
+        pygame.draw.circle(
+            surface,
+            tuple(current_color_2),
+            (int(particle["x"]), int(particle["y"])),
+            int(pulse_factor),
+        )
+
 
 def draw_response(model):
     """Update settings when the model is answering."""
@@ -241,6 +276,7 @@ def draw_response(model):
     is_collided = True
     angle += speed
 
+
 def draw_thinking():
     """Update settings when the model is listening."""
     global target_color_1, target_color_2, is_collided, angle, speed
@@ -250,6 +286,7 @@ def draw_thinking():
     is_collided = True
     angle += speed
 
+
 def draw_default():
     """Update settings when the model is not answering."""
     global target_color_1, target_color_2, is_collided, speed
@@ -258,26 +295,31 @@ def draw_default():
     speed = 1
     is_collided = False
 
+
 def draw_text(surface, text, position, font, color):
     """Draws text onto the surface."""
     text_surface = font.render(text, True, color)
     surface.blit(text_surface, position)
 
+
 def fetch_current_track():
     """Fetch the current playing track and its album cover."""
     try:
         current_track = sp.currently_playing()
-        if current_track and current_track['is_playing']:
-            song = current_track['item']['name']
-            artist = ", ".join([a['name'] for a in current_track['item']['artists']])
-            album_cover_url = current_track['item']['album']['images'][0]['url']
-            progress_ms = current_track['progress_ms']  # Progress in milliseconds
-            duration_ms = current_track['item']['duration_ms']  # Duration in milliseconds
+        if current_track and current_track["is_playing"]:
+            song = current_track["item"]["name"]
+            artist = ", ".join([a["name"] for a in current_track["item"]["artists"]])
+            album_cover_url = current_track["item"]["album"]["images"][0]["url"]
+            progress_ms = current_track["progress_ms"]  # Progress in milliseconds
+            duration_ms = current_track["item"][
+                "duration_ms"
+            ]  # Duration in milliseconds
             return song, artist, album_cover_url, progress_ms, duration_ms
         return None, None, None, 0, 0
     except Exception as e:
         print(f"Error fetching track: {e}")
         return None, None, None, 0, 0
+
 
 def draw_progress_bar(surface, x, y, width, height, progress, max_progress):
     """Draw a progress bar to represent the song timeline."""
@@ -295,6 +337,7 @@ def draw_progress_bar(surface, x, y, width, height, progress, max_progress):
     # Draw the filled progress bar (foreground)
     pygame.draw.rect(surface, Color.GREEN1.value, (x, y, progress_width, height))
 
+
 def update_status(new_status):
     # Add new status to the list
     status_list.append(new_status)
@@ -303,6 +346,7 @@ def update_status(new_status):
     if len(status_list) > 5:
         status_list.pop(0)  # Remove the oldest status (first element)
 
+
 def draw_dropdown(surface, x, y, w, h, font, options, selected, is_open):
     # Draw main box
     pygame.draw.rect(surface, Color.WHITE.value, (x, y, w, h), border_radius=5)
@@ -310,11 +354,15 @@ def draw_dropdown(surface, x, y, w, h, font, options, selected, is_open):
     surface.blit(text_surface, (x + 5, y + (h - text_surface.get_height()) // 2))
 
     # Draw arrow
-    pygame.draw.polygon(surface, Color.BLACK.value, [
-        (x + w - 20, y + h // 3),
-        (x + w - 10, y + h // 3),
-        (x + w - 15, y + 2 * h // 3)
-    ])
+    pygame.draw.polygon(
+        surface,
+        Color.BLACK.value,
+        [
+            (x + w - 20, y + h // 3),
+            (x + w - 10, y + h // 3),
+            (x + w - 15, y + 2 * h // 3),
+        ],
+    )
 
     # Draw expanded options if open
     if is_open:
@@ -322,13 +370,17 @@ def draw_dropdown(surface, x, y, w, h, font, options, selected, is_open):
             rect = pygame.Rect(x, y + (i + 1) * h, w, h)
             pygame.draw.rect(surface, Color.WHITE.value, rect, border_radius=5)
             option_surface = font.render(option, True, Color.BLACK.value)
-            surface.blit(option_surface, (x + 5, y + (h - option_surface.get_height()) // 2 + (i + 1) * h))
+            surface.blit(
+                option_surface,
+                (x + 5, y + (h - option_surface.get_height()) // 2 + (i + 1) * h),
+            )
+
 
 def record_text():
     """Listen for speech and return the recognized text."""
     try:
         with sr.Microphone() as source:
-            #print("Listening...")
+            # print("Listening...")
             r.adjust_for_ambient_noise(source, duration=0.2)
             audio = r.listen(source)
 
@@ -344,10 +396,13 @@ def record_text():
         print("Sorry, I didn't catch that. Please try again.")
         return None
 
+
 def chatbot():
     global wake_word_detected, model_answering, is_generating, jarvis_voice, jarvis_name, selected_model
 
-    print("Welcome to Vision! Say any of the models name to activate. Say 'exit' to quit.")
+    print(
+        "Welcome to Vision! Say any of the models name to activate. Say 'exit' to quit."
+    )
 
     while True:
         if not wake_word_detected:
@@ -360,7 +415,10 @@ def chatbot():
                 user_input_lower = user_input.lower()
 
                 if jarvis_name == "Джарвис":
-                    if any(word in user_input_lower for word in ["джарвис", "джарви", "джервис", "jarvis", "черви"]):
+                    if any(
+                        word in user_input_lower
+                        for word in ["джарвис", "джарви", "джервис", "jarvis", "черви"]
+                    ):
                         should_wake = True
                 else:
                     if jarvis_name.lower() in user_input_lower:
@@ -383,7 +441,6 @@ def chatbot():
                     is_generating = True
                     continue
 
-
             elif user_input == "излез":
                 print("Goodbye!")
                 audio = client.generate(text="Goodbye!", voice=jarvis_voice)
@@ -395,17 +452,24 @@ def chatbot():
             print("Listening for commands...")
             user_input = record_text()
 
-            #show_live_caption_text(user_input)
+            # show_live_caption_text(user_input)
 
             if user_input is None:
                 print("Error: No input detected.")
                 continue
 
-            if "представи се" in user_input or "представиш" in user_input or "представи" in user_input:
-                audio = client.generate(text="Здравейте, аз съм Джарвис, акроним от (Just A Rather Very Intelligent System), аз съм езиков модел на Gemini обучен от Google."
-                                             "Вдъхновен съм от легендарния изкуствен интелект на Тони Старк – Джарвис от Железния човек."
-                                             "Моята мисия е да помогна на децата със зрителни и други проблеми да им помогне с работата им с компютри и за по-доброто им усвояване на учебния материал."
-                                             "Ако искате да ме попитате нещо, просто ме повикайте по име.", voice="Brian")
+            if (
+                "представи се" in user_input
+                or "представиш" in user_input
+                or "представи" in user_input
+            ):
+                audio = client.generate(
+                    text="Здравейте, аз съм Джарвис, акроним от (Just A Rather Very Intelligent System), аз съм езиков модел на Gemini обучен от Google."
+                    "Вдъхновен съм от легендарния изкуствен интелект на Тони Старк – Джарвис от Железния човек."
+                    "Моята мисия е да помогна на децата със зрителни и други проблеми да им помогне с работата им с компютри и за по-доброто им усвояване на учебния материал."
+                    "Ако искате да ме попитате нещо, просто ме повикайте по име.",
+                    voice="Brian",
+                )
                 play(audio)
                 model_answering = False
                 is_generating = False
@@ -413,26 +477,32 @@ def chatbot():
                 continue
 
             if "можеш" in user_input and "правиш" in user_input:
-                audio = client.generate(text="Мога да търся информация в интернет, да я обобщавам и да ви я представям. "
-                                             "Също така, мога да изпращам и чета имейли, да пускам музика, да отварям нови документи в Word "
-                                             "И дори да ви опиша това, което виждам като изпозлвам Gemini Vision и OCR модел за разпознаване на текст.",
-                                        voice="Brian")
+                audio = client.generate(
+                    text="Мога да търся информация в интернет, да я обобщавам и да ви я представям. "
+                    "Също така, мога да изпращам и чета имейли, да пускам музика, да отварям нови документи в Word "
+                    "И дори да ви опиша това, което виждам като изпозлвам Gemini Vision и OCR модел за разпознаване на текст.",
+                    voice="Brian",
+                )
                 play(audio)
                 model_answering = False
                 is_generating = False
                 continue
-
 
             if "смениш" in user_input and "глас" in user_input:
                 model_answering = True
                 is_generating = False
 
                 audios = [
-                    client.generate(text="Разбира се, с кой глас бихте желали да говоря? "
-                                         "Имам следните гласове на разположение: Брайън", voice=jarvis_voice),
+                    client.generate(
+                        text="Разбира се, с кой глас бихте желали да говоря? "
+                        "Имам следните гласове на разположение: Брайън",
+                        voice=jarvis_voice,
+                    ),
                     client.generate(text="Джесика", voice=voices[1]),
                     client.generate(text="Роджър", voice=voices[2]),
-                    client.generate(text="и Саманта. Кой глас бихте предпочели?", voice=voices[3])
+                    client.generate(
+                        text="и Саманта. Кой глас бихте предпочели?", voice=voices[3]
+                    ),
                 ]
 
                 for audio in audios:
@@ -450,7 +520,9 @@ def chatbot():
                 elif "саманта" in user_input or "samantha" in user_input:
                     jarvis_voice = voices[3]
 
-                audio = client.generate(text=f"Супер, смених гласа на {jarvis_voice}", voice=jarvis_voice)
+                audio = client.generate(
+                    text=f"Супер, смених гласа на {jarvis_voice}", voice=jarvis_voice
+                )
                 play(audio)
 
                 model_answering = False
@@ -462,18 +534,27 @@ def chatbot():
                 model_answering = True
                 is_generating = False
 
-                audio = client.generate(text="Разбира се, как бихте желали да се казвам?", voice=jarvis_voice)
+                audio = client.generate(
+                    text="Разбира се, как бихте желали да се казвам?",
+                    voice=jarvis_voice,
+                )
                 play(audio)
 
                 print("Listening for name choice...")
                 user_input = record_text()
 
                 if user_input is None:
-                    audio = client.generate(text="Нe можах да разбера. Може ли да повторите?", voice=jarvis_voice)
+                    audio = client.generate(
+                        text="Нe можах да разбера. Може ли да повторите?",
+                        voice=jarvis_voice,
+                    )
                     play(audio)
                     user_input = record_text()
 
-                audio = client.generate(text=f"Супер, от сега нататък можете да ме наричате {user_input}", voice=jarvis_voice)
+                audio = client.generate(
+                    text=f"Супер, от сега нататък можете да ме наричате {user_input}",
+                    voice=jarvis_voice,
+                )
                 play(audio)
 
                 jarvis_name = user_input
@@ -487,20 +568,27 @@ def chatbot():
                 model_answering = True
                 is_generating = False
 
-                audio = client.generate(text="Разбира се, кой модел желаете да използвате?"
-                                             "Разполагам с Gemini(който в момента го използвате), Llama 3 и DeepSeek", voice=jarvis_voice)
+                audio = client.generate(
+                    text="Разбира се, кой модел желаете да използвате?"
+                    "Разполагам с Gemini(който в момента го използвате), Llama 3 и DeepSeek",
+                    voice=jarvis_voice,
+                )
                 play(audio)
 
                 print("Listening for model choice...")
                 user_input = record_text()
 
                 if user_input is None:
-                    audio = client.generate(text="Нe можах да разбера. Може ли да повторите?", voice=jarvis_voice)
+                    audio = client.generate(
+                        text="Нe можах да разбера. Може ли да повторите?",
+                        voice=jarvis_voice,
+                    )
                     play(audio)
                     user_input = record_text()
 
-                audio = client.generate(text=f"Супер, избрахте {user_input} за модел",
-                                        voice=jarvis_voice)
+                audio = client.generate(
+                    text=f"Супер, избрахте {user_input} за модел", voice=jarvis_voice
+                )
                 play(audio)
 
                 selected_model = user_input
@@ -510,12 +598,16 @@ def chatbot():
                 wake_word_detected = False
                 continue
 
-
-            if ("пусни" in user_input or "пуснеш" in user_input) and ("песен" in user_input or "музика" in user_input):
+            if ("пусни" in user_input or "пуснеш" in user_input) and (
+                "песен" in user_input or "музика" in user_input
+            ):
                 model_answering = True
                 is_generating = False
 
-                audio = client.generate(text="Разбира се, имате ли някакви предпочитания за песен?", voice=jarvis_voice)
+                audio = client.generate(
+                    text="Разбира се, имате ли някакви предпочитания за песен?",
+                    voice=jarvis_voice,
+                )
                 play(audio)
 
                 model_answering = False
@@ -525,7 +617,10 @@ def chatbot():
                 user_input = record_text()
 
                 if user_input is None:
-                    audio = client.generate(text="Нo можах да разбера. Може ли да повторите?", voice=jarvis_voice)
+                    audio = client.generate(
+                        text="Нo можах да разбера. Може ли да повторите?",
+                        voice=jarvis_voice,
+                    )
                     play(audio)
                     user_input = record_text()
 
@@ -533,24 +628,29 @@ def chatbot():
                     model_answering = True
                     is_generating = False
 
-                    audio = client.generate(text="Добре, коя песен бихте желали да ви пусна?",
-                                            voice=jarvis_voice)
+                    audio = client.generate(
+                        text="Добре, коя песен бихте желали да ви пусна?",
+                        voice=jarvis_voice,
+                    )
                     play(audio)
 
                     print("Listening for specific song...")
                     user_song = record_text()
 
-                    song_from_ai = chat.send_message({
-                        "parts": (
+                    song_from_ai = chat.send_message(
+                        {
+                            "parts": (
                                 "Твоята цел е да предложиш песен според това, което user-a е казал. "
                                 "Ако user-a споменава конкретен изпълнител, предложи песен **само от този изпълнител**. "
                                 "Отговори само с името на песента и изпълнителя, без нищо друго. "
                                 "- " + user_song
-                        )
-                    })
+                            )
+                        }
+                    )
 
-                    audio = client.generate(text=f"Пускам, {song_from_ai.text}",
-                                            voice=jarvis_voice)
+                    audio = client.generate(
+                        text=f"Пускам, {song_from_ai.text}", voice=jarvis_voice
+                    )
                     play(audio)
 
                     play_song(song_from_ai.text)
@@ -560,12 +660,18 @@ def chatbot():
 
                     print("Playback started on LAPTOP_KOSI.")
 
-                elif "не" in user_input or "изненадай ме" in user_input or "изненадай" in user_input:
+                elif (
+                    "не" in user_input
+                    or "изненадай ме" in user_input
+                    or "изненадай" in user_input
+                ):
                     model_answering = True
                     is_generating = False
 
-                    audio = client.generate(text="Пускам тогава от избрания от вас списък с песни?",
-                                            voice=jarvis_voice)
+                    audio = client.generate(
+                        text="Пускам тогава от избрания от вас списък с песни?",
+                        voice=jarvis_voice,
+                    )
                     play(audio)
 
                     track_name = random.choice(selected_songs)
@@ -581,15 +687,18 @@ def chatbot():
                 wake_word_detected = False
                 continue
 
-            if "спри" in user_input and ("песента" in user_input or "музиката" in user_input):
+            if "спри" in user_input and (
+                "песента" in user_input or "музиката" in user_input
+            ):
                 pause_music()
                 model_answering = False
                 is_generating = False
                 wake_word_detected = False
                 continue
 
-
-            if "пратиш" in user_input and ("имейл" in user_input or "писмо" in user_input):
+            if "пратиш" in user_input and (
+                "имейл" in user_input or "писмо" in user_input
+            ):
                 model_answering = True
                 is_generating = False
 
@@ -602,7 +711,9 @@ def chatbot():
                 wake_word_detected = False
                 continue
 
-            if "прочетеш" in user_input and ("писма" in user_input or "имейли" in user_input or "пис" in user_input):
+            if "прочетеш" in user_input and (
+                "писма" in user_input or "имейли" in user_input or "пис" in user_input
+            ):
 
                 readMail(jarvis_voice)
 
@@ -612,8 +723,16 @@ def chatbot():
                 wake_word_detected = False
                 continue
 
-            if (("събитие" in user_input or "събити" in user_input or "събития" in user_input)
-                    and ("създадеш" in user_input or "Създадеш" in user_input or "създай" in user_input or "Създай" in user_input)):
+            if (
+                "събитие" in user_input
+                or "събити" in user_input
+                or "събития" in user_input
+            ) and (
+                "създадеш" in user_input
+                or "Създадеш" in user_input
+                or "създай" in user_input
+                or "Създай" in user_input
+            ):
 
                 create_appointment(jarvis_voice)
 
@@ -625,8 +744,9 @@ def chatbot():
 
                 # Направи ми събитие за 3 следобяд днес, което да продължи 1 час, и да се казва "нахрани котката"pip install pywin32
 
-
-            if ("съобщение" in user_input or "съобщения" in user_input) and "пратиш" in user_input: # currently not working, needs testing
+            if (
+                "съобщение" in user_input or "съобщения" in user_input
+            ) and "пратиш" in user_input:  # currently not working, needs testing
                 # whatsapp_send_message()
                 generate_message(user_input)
 
@@ -636,7 +756,9 @@ def chatbot():
                 wake_word_detected = False
                 continue
 
-            if ("виждаш" in user_input or "вижда" in user_input) and "какво" in user_input:
+            if (
+                "виждаш" in user_input or "вижда" in user_input
+            ) and "какво" in user_input:
                 gemini_vision()
 
                 update_status(f"Използва Gemini Vision за камерата")
@@ -645,7 +767,9 @@ def chatbot():
                 wake_word_detected = False
                 continue
 
-            if ("има" in user_input or "виж" in user_input) and ("екрана" in user_input or "екрa" in user_input):
+            if ("има" in user_input or "виж" in user_input) and (
+                "екрана" in user_input or "екрa" in user_input
+            ):
                 take_screenshot()
 
                 # text_from_screenshot = take_screenshot()
@@ -659,16 +783,21 @@ def chatbot():
                 wake_word_detected = False
                 continue
 
-            if ("разпознаеш" in user_input or "коя" in user_input) and "песен" in user_input:
-                audio = client.generate(text="Разбира се, започвам да слушам. Ако разпозная песента ще ви кажа името и автора на песента",
-                                        voice=jarvis_voice)
+            if (
+                "разпознаеш" in user_input or "коя" in user_input
+            ) and "песен" in user_input:
+                audio = client.generate(
+                    text="Разбира се, започвам да слушам. Ако разпозная песента ще ви кажа името и автора на песента",
+                    voice=jarvis_voice,
+                )
                 play(audio)
 
                 title, artist = recognize_audio()  # Get the title and artist
                 if title and artist:
                     audio = client.generate(
                         text=f"Намерих песента, песента е {title}, а автора е {artist}. Желаете ли да пусна песента в spotify?",
-                        voice=jarvis_voice)
+                        voice=jarvis_voice,
+                    )
                     play(audio)
                     print(f"Song Title: {title}")
                     print(f"Artist: {artist}")
@@ -677,8 +806,9 @@ def chatbot():
                     answer_info = record_text()
 
                     if "да" in answer_info:
-                        audio = client.generate(text=f"Пускам, {title} на {artist}",
-                                                voice=jarvis_voice)
+                        audio = client.generate(
+                            text=f"Пускам, {title} на {artist}", voice=jarvis_voice
+                        )
                         play(audio)
                         play_song(title)
 
@@ -696,8 +826,13 @@ def chatbot():
                 wake_word_detected = False
                 continue
 
-            if (("отвори" in user_input or "отвориш" in user_input or "отвориш" in user_input ) # currently not working
-                    and ("word" in user_input or "wor" in user_input or "документ" in user_input)):
+            if (
+                "отвори" in user_input
+                or "отвориш" in user_input
+                or "отвориш" in user_input
+            ) and (  # currently not working
+                "word" in user_input or "wor" in user_input or "документ" in user_input
+            ):
 
                 openWord(jarvis_voice)
 
@@ -707,54 +842,58 @@ def chatbot():
                 wake_word_detected = False
                 continue
 
-
             if user_input:
 
                 is_generating = True
 
-                if (selected_model == "Gemini"):
+                if selected_model == "Gemini":
                     result = chat.send_message({"parts": [user_input]})
 
-                elif(selected_model == "Llama3"):
+                elif selected_model == "Llama3":
                     result = ollama.chat(
                         model="tinyllama",
-                        messages=[{"role": "user", "content": user_input}]
+                        messages=[{"role": "user", "content": user_input}],
                     )
 
-                elif(selected_model == "Deepseek"): # currently not working
+                elif selected_model == "Deepseek":  # currently not working
                     deepseek_client = OpenAI(
                         api_key="sk-b137c86b799b4260854985c40021ce7e",
-                        base_url="https://api.deepseek.com"
+                        base_url="https://api.deepseek.com",
                     )
 
                     result = deepseek_client.chat.completions.create(
                         model="deepseek-chat",
                         messages=[
                             {"role": "system", "content": system_instruction},
-                            {"role": "user", "content": user_input}
+                            {"role": "user", "content": user_input},
                         ],
                         temperature=0.7,
-                        max_tokens=1000
+                        max_tokens=1000,
                     )
 
                 is_generating = False
                 model_answering = True
 
-                if (selected_model == "Gemini"):
+                if selected_model == "Gemini":
                     print(f"Jarvis ({selected_model}): {result.text}")
 
                     audio = client.generate(text=result.text, voice=jarvis_voice)
                     play(audio)
 
-
-                elif (selected_model == "Llama3"):
+                elif selected_model == "Llama3":
                     print(f"Jarvis ({selected_model}): {result['message']['content']}")
-                    audio = client.generate(text=result['message']['content'], voice=jarvis_voice)
+                    audio = client.generate(
+                        text=result["message"]["content"], voice=jarvis_voice
+                    )
                     play(audio)
 
-                elif(selected_model == "Deepseek"):
-                    print(f"Jarvis ({selected_model}): {result.choices[0].message.content}")
-                    audio = client.generate(text=result.choices[0].message.content, voice=jarvis_voice)
+                elif selected_model == "Deepseek":
+                    print(
+                        f"Jarvis ({selected_model}): {result.choices[0].message.content}"
+                    )
+                    audio = client.generate(
+                        text=result.choices[0].message.content, voice=jarvis_voice
+                    )
                     play(audio)
 
                 model_answering = False
@@ -762,12 +901,14 @@ def chatbot():
 
             wake_word_detected = False
 
+
 # Main Loop
 running = True
 chatbot_thread = None
 
 # Run chatbot in a separate thread
 import threading
+
 chatbot_thread = threading.Thread(target=chatbot)
 chatbot_thread.start()
 
@@ -789,7 +930,7 @@ while running:
                         dropdown_rect.x,
                         dropdown_rect.y + (i + 1) * dropdown_rect.height,
                         dropdown_rect.width,
-                        dropdown_rect.height
+                        dropdown_rect.height,
                     )
                     if option_rect.collidepoint(mouse_pos):
                         selected_model = option
@@ -813,17 +954,38 @@ while running:
 
     # Draw Text
     draw_text(screen, "Vision Interface MK4", (10, 10), font_large, Color.WHITE.value)
-    draw_text(screen, "System Status: All Systems Online", (10, 60), font_small, tuple(current_color_2))
+    draw_text(
+        screen,
+        "System Status: All Systems Online",
+        (10, 60),
+        font_small,
+        tuple(current_color_2),
+    )
 
     # Draw the list of statuses under "System Status"
     start_y = 90  # Starting position for the list of items
     line_height = 30  # Space between each list item
     for index, status in enumerate(status_list):
-        draw_text(screen, status, (10, start_y + index * line_height), font_small, Color.WHITE.value)
+        draw_text(
+            screen,
+            status,
+            (10, start_y + index * line_height),
+            font_small,
+            Color.WHITE.value,
+        )
 
     # Draw dropdown
-    draw_dropdown(screen, dropdown_rect.x, dropdown_rect.y, dropdown_rect.width, dropdown_rect.height,
-                  font_small, models, selected_model, dropdown_open)
+    draw_dropdown(
+        screen,
+        dropdown_rect.x,
+        dropdown_rect.y,
+        dropdown_rect.width,
+        dropdown_rect.height,
+        font_small,
+        models,
+        selected_model,
+        dropdown_open,
+    )
 
     # Fetch current track periodically (e.g., every 3 seconds)
     if pygame.time.get_ticks() % 3000 < 50:  # Update every 3 seconds
@@ -837,7 +999,9 @@ while running:
     # Draw the progress bar for the song timeline
     progress_bar_x = (WIDTH - 700) // 2
     progress_bar_y = HEIGHT - 30
-    draw_progress_bar(screen, progress_bar_x, progress_bar_y, 700, 10, current_progress, song_duration)
+    draw_progress_bar(
+        screen, progress_bar_x, progress_bar_y, 700, 10, current_progress, song_duration
+    )
 
     # Draw song information above the progress bar
     if current_song:

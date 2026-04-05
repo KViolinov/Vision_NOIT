@@ -17,4 +17,4 @@ def start_call(target_caller: str):
         except Exception as e:
             print(f"❌ Error processing the link: {e}")
     elif link == "none":
-        print(f"⚠️ {target} has no Instagram link associated.")
+        print(f"⚠️ {target_caller} has no Instagram link associated.")

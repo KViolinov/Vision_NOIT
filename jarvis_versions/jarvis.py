@@ -9,9 +9,14 @@ from jarvis_functions.gemini_vision_method import *
 from jarvis_functions.call_phone_method import *
 from jarvis_functions.whatsapp_messaging_method import *
 from jarvis_functions.ocr_model_method import *
-from jarvis_functions.shazam_method import *
+from jarvis_functions.song_recognition import *
 from jarvis_functions.send_message_instagram.input_to_message_ai import *
-from api_keys.api_keys import ELEVEN_LABS_API, GEMINI_KEY, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
+from api_keys.api_keys import (
+    ELEVEN_LABS_API,
+    GEMINI_KEY,
+    SPOTIFY_CLIENT_ID,
+    SPOTIFY_CLIENT_SECRET,
+)
 
 # Initialize Pygame
 pygame.init()
@@ -19,17 +24,20 @@ pygame.mixer.init()
 client = ElevenLabs(api_key=ELEVEN_LABS_API)
 r = sr.Recognizer()
 
-#tv lights
+# tv lights
 WLED_IP = "192.168.10.211"
 
 # Seting up spotify
 client_id = SPOTIFY_CLIENT_ID
 client_secret = SPOTIFY_CLIENT_SECRET
-sp = spotipy.Spotify(auth_manager=spotipy.SpotifyOAuth(
-    client_id=client_id,
-    client_secret=client_secret,
-    redirect_uri='http://localhost:8888/callback',
-    scope='user-library-read user-read-playback-state user-modify-playback-state'))  # Scope for currently playing song
+sp = spotipy.Spotify(
+    auth_manager=spotipy.SpotifyOAuth(
+        client_id=client_id,
+        client_secret=client_secret,
+        redirect_uri="http://localhost:8888/callback",
+        scope="user-library-read user-read-playback-state user-modify-playback-state",
+    )
+)  # Scope for currently playing song
 
 jazz_playlist_url = "spotify:playlist/60joMYdXRjtwwfyERiGu4c?si=42cc553fb755446d"
 
@@ -116,8 +124,8 @@ jarvis_responses = [
     "Тук съм, как мога да помогна?",
     "Слушам, как мога да Ви асистирам?",
     "Тук съм, как мога да помогна?",
-    "С какво мога да Ви бъда полезен?"
-    #"Слушам шефе, как да помогна?"
+    "С какво мога да Ви бъда полезен?",
+    # "Слушам шефе, как да помогна?"
 ]
 
 selected_songs = [
@@ -130,16 +138,23 @@ selected_songs = [
     "September - Earth, Wind & Fire",
     "Should I Stay or Should I Go - Remastered",
     "If You Want Blood(You've Got It) - AC/DC",
-    "Welcome Tо The Jungle - Guns N' Roses"
+    "Welcome Tо The Jungle - Guns N' Roses",
 ]
 
 status_list = []
 
-jarvis_voice = "Brian" #deffault voice
+jarvis_voice = "Brian"  # deffault voice
 
 # Ball initial random positions
-random_particles = [{"x": random.randint(0, WIDTH), "y": random.randint(0, HEIGHT),
-                     "dx": random.uniform(-2, 2), "dy": random.uniform(-2, 2)} for _ in range(num_particles)]
+random_particles = [
+    {
+        "x": random.randint(0, WIDTH),
+        "y": random.randint(0, HEIGHT),
+        "dx": random.uniform(-2, 2),
+        "dy": random.uniform(-2, 2),
+    }
+    for _ in range(num_particles)
+]
 
 # State Variables
 model_answering = False
@@ -154,6 +169,7 @@ album_cover = None
 current_progress = 0
 song_duration = 0
 
+
 def blend_color(current, target, speed):
     """Gradually transitions the current color toward the target color."""
     for i in range(3):
@@ -163,6 +179,7 @@ def blend_color(current, target, speed):
         else:
             current[i] = target[i]
 
+
 def draw_particles(surface, particles, target_mode=False):
     """Draws particles on the surface. If target_mode is True, arrange them in a circle and pulse."""
     global angle, pulse_factor
@@ -170,14 +187,24 @@ def draw_particles(surface, particles, target_mode=False):
     for i, particle in enumerate(particles):
         if target_mode:
             # Calculate target circular positions
-            target_x = center[0] + math.cos(math.radians(angle + i * 360 / len(particles))) * max_radius
-            target_y = center[1] + math.sin(math.radians(angle + i * 360 / len(particles))) * max_radius
+            target_x = (
+                center[0]
+                + math.cos(math.radians(angle + i * 360 / len(particles))) * max_radius
+            )
+            target_y = (
+                center[1]
+                + math.sin(math.radians(angle + i * 360 / len(particles))) * max_radius
+            )
             # Smoothly move particles towards their circular positions
             particle["x"] += (target_x - particle["x"]) * 0.05
             particle["y"] += (target_y - particle["y"]) * 0.05
 
             # Pulse effect
-            pulse_factor = min(max_size, pulse_factor + pulse_speed) if pulse_factor < max_size else max(min_size, pulse_factor - pulse_speed)
+            pulse_factor = (
+                min(max_size, pulse_factor + pulse_speed)
+                if pulse_factor < max_size
+                else max(min_size, pulse_factor - pulse_speed)
+            )
         else:
             # Move particles randomly when in default mode
             particle["x"] += particle["dx"]
@@ -190,7 +217,13 @@ def draw_particles(surface, particles, target_mode=False):
                 particle["dy"] *= -1
 
         # Draw the particle
-        pygame.draw.circle(surface, tuple(current_color_2), (int(particle["x"]), int(particle["y"])), int(pulse_factor))
+        pygame.draw.circle(
+            surface,
+            tuple(current_color_2),
+            (int(particle["x"]), int(particle["y"])),
+            int(pulse_factor),
+        )
+
 
 def draw_response(model):
     """Update settings when the model is answering."""
@@ -210,6 +243,7 @@ def draw_response(model):
     is_collided = True
     angle += speed
 
+
 def draw_thinking():
     """Update settings when the model is listening."""
     global target_color_1, target_color_2, is_collided, angle, speed
@@ -219,6 +253,7 @@ def draw_thinking():
     is_collided = True
     angle += speed
 
+
 def draw_default():
     """Update settings when the model is not answering."""
     global target_color_1, target_color_2, is_collided, speed
@@ -227,26 +262,31 @@ def draw_default():
     speed = 1
     is_collided = False
 
+
 def draw_text(surface, text, position, font, color):
     """Draws text onto the surface."""
     text_surface = font.render(text, True, color)
     surface.blit(text_surface, position)
 
+
 def fetch_current_track():
     """Fetch the current playing track and its album cover."""
     try:
         current_track = sp.currently_playing()
-        if current_track and current_track['is_playing']:
-            song = current_track['item']['name']
-            artist = ", ".join([a['name'] for a in current_track['item']['artists']])
-            album_cover_url = current_track['item']['album']['images'][0]['url']
-            progress_ms = current_track['progress_ms']  # Progress in milliseconds
-            duration_ms = current_track['item']['duration_ms']  # Duration in milliseconds
+        if current_track and current_track["is_playing"]:
+            song = current_track["item"]["name"]
+            artist = ", ".join([a["name"] for a in current_track["item"]["artists"]])
+            album_cover_url = current_track["item"]["album"]["images"][0]["url"]
+            progress_ms = current_track["progress_ms"]  # Progress in milliseconds
+            duration_ms = current_track["item"][
+                "duration_ms"
+            ]  # Duration in milliseconds
             return song, artist, album_cover_url, progress_ms, duration_ms
         return None, None, None, 0, 0
     except Exception as e:
         print(f"Error fetching track: {e}")
         return None, None, None, 0, 0
+
 
 def draw_progress_bar(surface, x, y, width, height, progress, max_progress):
     """Draw a progress bar to represent the song timeline."""
@@ -264,6 +304,7 @@ def draw_progress_bar(surface, x, y, width, height, progress, max_progress):
     # Draw the filled progress bar (foreground)
     pygame.draw.rect(surface, GREEN1, (x, y, progress_width, height))
 
+
 def update_status(new_status):
     # Add new status to the list
     status_list.append(new_status)
@@ -272,11 +313,12 @@ def update_status(new_status):
     if len(status_list) > 5:
         status_list.pop(0)  # Remove the oldest status (first element)
 
+
 def record_text():
     """Listen for speech and return the recognized text."""
     try:
         with sr.Microphone() as source:
-            #print("Listening...")
+            # print("Listening...")
             r.adjust_for_ambient_noise(source, duration=0.2)
             audio = r.listen(source)
 
@@ -292,12 +334,15 @@ def record_text():
         print("Sorry, I didn't catch that. Please try again.")
         return None
 
+
 def chatbot():
     global wake_word_detected, model_answering, is_generating, current_model
 
-    current_model= "Jarvis"
+    current_model = "Jarvis"
 
-    print("Welcome to Vision! Say any of the models name to activate. Say 'exit' to quit.")
+    print(
+        "Welcome to Vision! Say any of the models name to activate. Say 'exit' to quit."
+    )
 
     while True:
         if not wake_word_detected:
@@ -305,11 +350,13 @@ def chatbot():
             print("Waiting for wake word...")
             user_input = record_text()
 
-            if user_input and ("джарвис" in user_input
-                               or "джарви" in user_input
-                               or "джервис" in user_input
-                               or "jarvis" in user_input
-                               or "черви" in user_input):
+            if user_input and (
+                "джарвис" in user_input
+                or "джарви" in user_input
+                or "джервис" in user_input
+                or "jarvis" in user_input
+                or "черви" in user_input
+            ):
 
                 wake_word_detected = True
                 current_model = "Jarvis"
@@ -343,12 +390,11 @@ def chatbot():
                 print("Error: No input detected.")
                 continue
 
-
             if user_input:
                 # Start thinking state
                 is_generating = True
 
-                if (current_model == "Jarvis"): #Jarvis model (Gemini)
+                if current_model == "Jarvis":  # Jarvis model (Gemini)
                     result = chat.send_message({"parts": [user_input]})
 
                 # Done generating the answer
@@ -356,7 +402,7 @@ def chatbot():
                 model_answering = True
 
                 # Answering based on model
-                if (current_model == "Jarvis"): #Jarvis answering
+                if current_model == "Jarvis":  # Jarvis answering
                     print(f"Jarvis: {result.text}")
                     audio = client.generate(text=result.text, voice=jarvis_voice)
                     play(audio)
@@ -365,12 +411,15 @@ def chatbot():
                 is_generating = False
 
             wake_word_detected = False
+
+
 # Main Loop
 running = True
 chatbot_thread = None
 
 # Run chatbot in a separate thread
 import threading
+
 chatbot_thread = threading.Thread(target=chatbot)
 chatbot_thread.start()
 
@@ -386,13 +435,13 @@ while running:
     # Toggle behavior based on whether the model is generating or answering
     if is_generating:
         draw_thinking()  # Show thinking state
-        #set_color(255, 165, 0)  # Orange
+        # set_color(255, 165, 0)  # Orange
     elif model_answering:
-        draw_response(current_model) # Show answering state
-        #set_color(0, 219, 0)  # Green
+        draw_response(current_model)  # Show answering state
+        # set_color(0, 219, 0)  # Green
     else:
         draw_default()  # Default state when nothing is happening.
-        #set_color(0, 128, 255)  # Red
+        # set_color(0, 128, 255)  # Red
 
     # Smooth Color Transition
     blend_color(current_color_1, target_color_1, color_transition_speed)
@@ -403,14 +452,22 @@ while running:
 
     # Draw Text
     draw_text(screen, "Vision Interface", (10, 10), font_large, WHITE)
-    draw_text(screen, "System Status: All Systems Online", (10, 60), font_small, tuple(current_color_2))
+    draw_text(
+        screen,
+        "System Status: All Systems Online",
+        (10, 60),
+        font_small,
+        tuple(current_color_2),
+    )
 
     # Draw the list of statuses under "System Status"
     start_y = 90  # Starting position for the list of items
     line_height = 30  # Space between each list item
 
     for index, status in enumerate(status_list):
-        draw_text(screen, status, (10, start_y + index * line_height), font_small, WHITE)
+        draw_text(
+            screen, status, (10, start_y + index * line_height), font_small, WHITE
+        )
 
     # Function to update the status list
     def update_status(new_status):
@@ -432,7 +489,9 @@ while running:
         # Adjust the progress bar position if needed
     progress_bar_x = (WIDTH - 700) // 2
     progress_bar_y = HEIGHT - 30  # Adjust y-position for progress bar
-    draw_progress_bar(screen, progress_bar_x, progress_bar_y, 700, 10, current_progress, song_duration)
+    draw_progress_bar(
+        screen, progress_bar_x, progress_bar_y, 700, 10, current_progress, song_duration
+    )
 
     # Draw song information above the progress bar
     if current_song:

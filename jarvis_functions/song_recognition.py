@@ -17,7 +17,7 @@ from jarvis_functions.essential_functions.enhanced_elevenlabs import (
 from jarvis_functions.essential_functions.voice_input import record_text
 from jarvis_functions.play_spotify import play_song
 
-from jarvis_functions.essential_functions.change_config_settings import get_jarvis_voice
+from jarvis_functions.essential_functions.config import get_jarvis_voice
 
 # from account.check_account import require_login
 

@@ -9,7 +9,7 @@ from jarvis_functions.essential_functions.enhanced_elevenlabs import (
     generate_audio_from_text,
 )
 
-from jarvis_functions.essential_functions.change_config_settings import get_jarvis_voice
+from jarvis_functions.essential_functions.config import get_jarvis_voice
 from jarvis_functions.essential_functions.contact_locator import find_contact
 
 jarvis_voice = get_jarvis_voice()

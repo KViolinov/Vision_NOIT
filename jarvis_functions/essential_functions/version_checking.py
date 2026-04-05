@@ -1,6 +1,6 @@
 import requests
 from packaging import version
-from jarvis_functions.essential_functions.change_config_settings import (
+from jarvis_functions.essential_functions.config import (
     get_jarvis_voice,
     get_jarvis_name,
     change_jarvis_name,

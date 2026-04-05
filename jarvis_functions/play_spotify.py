@@ -21,9 +21,6 @@ sp = spotipy.Spotify(
 )  # Scope for currently playing song
 
 
-ac_dc_playlist_url = "spotify:playlist:1HbAhSztnIcp67DbQBRw9j?si=cd8a3c6e5d8a4e41"
-
-
 # @require_login
 def play_song(user_input: str):
     track_name = user_input
@@ -34,6 +31,7 @@ def play_song(user_input: str):
     # Get the current device
     devices = sp.devices()
     # Find the LAPTOP_KOSI device by its ID
+    # TODO : Hard coded, need to find a way to make it dynamic
     pc_device_id = "9f209db1259e0ac1839d7db8ace6624ad5f5eaaa"
 
     # Start playback on the LAPTOP_KOSI device

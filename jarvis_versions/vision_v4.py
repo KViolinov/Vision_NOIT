@@ -38,7 +38,7 @@ from jarvis_functions.essential_functions.change_config_settings import (
 from jarvis_functions.whatsapp_messaging_method import whatsapp_send_message
 from jarvis_functions.send_message_instagram.input_to_message_ai import generate_message
 
-from jarvis_functions.instagram_audio_calling import start_call
+from jarvis_functions.instagram_call import start_call
 
 # Screenshot, Photo and Video related functions
 from jarvis_functions.take_screenshot import take_screenshot
@@ -46,7 +46,7 @@ from jarvis_functions.gemini_vision_method import gemini_vision
 from jarvis_functions.record_video import record_video
 
 # Music related functions (commented out for now)
-from jarvis_functions.shazam_method import recognize_song
+from jarvis_functions.song_recognition import recognize_song
 from jarvis_functions.play_spotify import play_song, play_music, pause_music
 
 # Document and Mail related functions
@@ -62,6 +62,7 @@ from jarvis_functions.word_document import openWord
 
 from jarvis_functions.essential_functions.first_time_check import check_launch_status
 from jarvis_functions.essential_functions.version_checking import check_for_update
+from jarvis_functions.essential_functions.request_new_feature import request_new_feature
 
 from jarvis_functions.essential_functions.home_server import ask_local_model
 
@@ -120,6 +121,12 @@ SYSTEM_INSTRUCTIONS = (
     "- recognize_song() - Извикай тази фунцкия когато потрбителя иска да разпознаеш песен.\n\n"
     "Никога не добавяй нищо извън JSON формата. "
     'Ако не си сигурен, върни {"response_type": "answer", "answer": "Не съм сигурен, но мога да проверя."}'
+    "3️⃣ Ако потребителят иска действие, което НЕ Е в списъка с функции:"
+    "{"
+    '"response_type": "command",'
+    '"function": "request_new_feature",'
+    '"parameters": {"feature_name": "името_на_желаната_функция", "user_notes": "кратко описание"}'
+    "}"
 )
 
 client = genai.Client(api_key=os.getenv("GEMINI_KEY"))
@@ -135,7 +142,7 @@ chat_session = client.chats.create(model="gemini-2.5-flash", config=MODEL_CONFIG
 pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
 ui = VisionUI("ui", "index.html")
 
-JARVIS_RESPONCES = [
+JARVIS_RESPONSES = [
     "Тук съм, как мога да помогна?",
     "Слушам, как мога да Ви асистирам?",
     "Тук съм, как мога да помогна?",
@@ -157,6 +164,7 @@ STOP_KEYWORDS = frozenset(
 STARTUP_SOUND = "sound_files/startup_sound_v2.mp3"
 NOTIFICATION_SOUND = "sound_files/notification_sound.mp3"
 MIC_TOGGLE_SOUND = "sound_files/mic_mute_unmute_sound.mp3"
+ERROR_SOUND = "sound_files/error_message_sound.mp3"
 DEFAULT_VOLUME = 0.5
 WAKE_WORD_DELAY = 0.5
 
@@ -174,6 +182,7 @@ COMMAND_REGISTRY = {
     "openWord": openWord,
     "start_call": start_call,
     "recognize_song": recognize_song,
+    "request_new_feature": request_new_feature,
 }
 
 
@@ -295,7 +304,19 @@ def handle_user_input(user_input):
             except Exception as e:
                 print(f"❌ Error executing function: {e}")
         else:
+            # TODO: Needs testing
             print(f"⚠️ Function {function_name} not found")
+            _play_sound(ERROR_SOUND, volume=DEFAULT_VOLUME)
+
+            generate_audio_from_text(
+                "Съжалявам, все още не мога да направя това. Изпратих съобщение на разработчика да го добави в следващият ъпдейт!",
+                get_jarvis_voice(),
+            )
+
+            request_new_feature(
+                function_name,
+                user_notes=f"User tried to trigger a missing command: {function_name}",
+            )
 
 
 def setup_mic_hotkey():
@@ -378,7 +399,7 @@ def chatbot():
                 print("✅ Wake word detected!")
                 ui.set_state("answering")
 
-                response = random.choice(JARVIS_RESPONCES)
+                response = random.choice(JARVIS_RESPONSES)
                 generate_audio_from_text(text=response, voice=jarvis_voice)
 
                 ui.set_state("thinking")

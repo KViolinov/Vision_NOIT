@@ -1,18 +1,19 @@
 # TODO
-- To switch to the new version of google.genai - Works for now?
 - Test the settings page - sometimes lags (needs more investigation)
 - Add login/sign up button on profile picture
 - To make it so i can "interrupt" Slavi with a keyboard shortcut
 - To make signup/login page and connect it to the database in railway
 - To fix the issue with creating more then one account with the same information 
 - To add the function to for the user to choose their photo for pfp
-- To send report to admin (for not currently available functions, in hopes to be added in future update)
+- Daily Digest (news primaraly)
 
 # IN PROGRESS
 - To make Slavi not so robot-ick. More human-ish.
 - Instagram Audio Calling - needs more work.
+- To send report to admin (for not currently available functions, in hopes to be added in future update)
 
 # DONE
 - Mute/Unmute button/shortcut
 - [VisionUI] Switching to state: answering - it kind of works, not perfect.
 - Check for new updates and notifies the user if there is one.
+- To switch to the new version of google.genai

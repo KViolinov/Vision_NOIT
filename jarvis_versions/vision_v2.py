@@ -12,9 +12,11 @@ import google.generativeai as genai
 
 from dotenv import load_dotenv
 
-from jarvis_functions.essential_functions.enhanced_elevenlabs import generate_audio_from_text
+from jarvis_functions.essential_functions.enhanced_elevenlabs import (
+    generate_audio_from_text,
+)
 from jarvis_functions.essential_functions.voice_input import record_text
-from jarvis_functions.shazam_method import recognize_audio
+from jarvis_functions.song_recognition import recognize_audio
 from jarvis_functions.word_document import openWord
 from jarvis_functions.whatsapp_messaging_method import whatsapp_send_message
 from jarvis_functions.take_screenshot import take_screenshot
@@ -25,8 +27,6 @@ from jarvis_functions.call_phone_method import call_phone
 from jarvis_functions.send_message_instagram.input_to_message_ai import generate_message
 
 
-
-
 load_dotenv()
 
 # Initialize Pygame
@@ -35,11 +35,14 @@ pygame.mixer.init()
 
 client_id = os.getenv("SPOTIFY_CLIENT_ID")
 client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
-sp = spotipy.Spotify(auth_manager=spotipy.SpotifyOAuth(
-    client_id=client_id,
-    client_secret=client_secret,
-    redirect_uri='http://localhost:8888/callback',
-    scope='user-library-read user-read-playback-state user-modify-playback-state'))  # Scope for currently playing song
+sp = spotipy.Spotify(
+    auth_manager=spotipy.SpotifyOAuth(
+        client_id=client_id,
+        client_secret=client_secret,
+        redirect_uri="http://localhost:8888/callback",
+        scope="user-library-read user-read-playback-state user-modify-playback-state",
+    )
+)  # Scope for currently playing song
 
 os.environ["GEMINI_API_KEY"] = os.getenv("GEMINI_KEY")
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
@@ -53,36 +56,40 @@ system_instructions = (
     "Осигурете, че всички отговори са фактологически точни и лесни за разбиране. "
     "Твоята работа е следната: При получаване на команда от потребителя, "
     "ти трябва да определиш дали е команда или просто въпрос."
-
     "Ако е въпрос, отговори на него кратко и информативно. "
     "Когато е подходящо, добавяйте стилови маркери за емоция или начин на изразяване, "
     "например [whispers], [laughs], [sarcastically], [cheerfully], [angrily], "
     "за да подскажете на TTS как да чете текста. "
     "Винаги оставяйте маркерите в скоби [] директно в текста."
-
     "Обаче ако е команда, трябва да напишеш 'command'."
     "След това на нов ред, трябва да напишеш името на функцията, която трябва да се извика (като събереш подходящата информация), "
     "като имаш предвид следните функции, които можеш да използваш: "
-
-    "1. generate_message(user_input) - Изпраща съобщение в Instagram на посочения получател. Фунцията изисква параметър user_input от тип str, от тебе просто се иска да сложиш като параметър оригиналния текст на user-a. " # -
-    "2. gemini_vision() - Използва Gemini Vision модел който разпознава какво има на уеб камерата. Функцията не изисква параметри." # -
-    "3. take_screenshot() - Използва Gemini Vision модел който разпознава какво има на екрана. Функцията не изисква параметри. " # -
-    "4. play_song(user_input) - Пуска песен в Spotify. Функцията изисква параметър user_input от тип str, който съдържа името на песента." # - 
-    "5. pause_music() - Пауза на текущата песен в Spotify. Функцията не изисква параметри." # - 
-    "6. change_jarvis_voice() - Променя гласа на Джарвис. Функцията не изисква параметри." # needs some work
-    "7. change_jarvis_name() - Променя името на Джарвис. Функцията не изисква параметри." # needs some work
+    "1. generate_message(user_input) - Изпраща съобщение в Instagram на посочения получател. Фунцията изисква параметър user_input от тип str, от тебе просто се иска да сложиш като параметър оригиналния текст на user-a. "  # -
+    "2. gemini_vision() - Използва Gemini Vision модел който разпознава какво има на уеб камерата. Функцията не изисква параметри."  # -
+    "3. take_screenshot() - Използва Gemini Vision модел който разпознава какво има на екрана. Функцията не изисква параметри. "  # -
+    "4. play_song(user_input) - Пуска песен в Spotify. Функцията изисква параметър user_input от тип str, който съдържа името на песента."  # -
+    "5. pause_music() - Пауза на текущата песен в Spotify. Функцията не изисква параметри."  # -
+    "6. change_jarvis_voice() - Променя гласа на Джарвис. Функцията не изисква параметри."  # needs some work
+    "7. change_jarvis_name() - Променя името на Джарвис. Функцията не изисква параметри."  # needs some work
     "8. readMail() - Чете последните имейли от Outlook. Функцията не изисква параметри."
     "9. create_appointment() - Създава ново събитие в календара на Outlook. Функцията не изисква параметри."
-    "10. send_email() - Изпраща имейл чрез Outlook. Функцията не изисква параметри." # -
-    "11. openWord() - Отваря Microsoft Word и създава нов документ. Функцията не изисква параметри." # -
-    "12. recognize_audio() - Разпознава песен чрез слушане на микрофона. Функцията не изисква параметри." # -
-
+    "10. send_email() - Изпраща имейл чрез Outlook. Функцията не изисква параметри."  # -
+    "11. openWord() - Отваря Microsoft Word и създава нов документ. Функцията не изисква параметри."  # -
+    "12. recognize_audio() - Разпознава песен чрез слушане на микрофона. Функцията не изисква параметри."  # -
     "Винаги връщай отговора в JSON формат, като използваш следната структура: "
     "{'response_type': 'command', 'function': 'function_name', 'parameters': {'param1': 'value1', 'param2': 'value2'}}"
-    "или ако е въпрос: ""{'response_type': 'answer', 'answer': 'your answer here'}"
+    "или ако е въпрос: "
+    "{'response_type': 'answer', 'answer': 'your answer here'}"
 )
 
-chat = model.start_chat(history=[{"role": "user", "parts": [system_instructions], }])
+chat = model.start_chat(
+    history=[
+        {
+            "role": "user",
+            "parts": [system_instructions],
+        }
+    ]
+)
 
 # Screen Dimensions
 # info = pygame.display.Info()
@@ -142,14 +149,21 @@ target_color_2 = list(Color.CYAN.value)
 color_transition_speed = 10
 
 # Ball initial random positions
-random_particles = [{"x": random.randint(0, WIDTH), "y": random.randint(0, HEIGHT),
-                     "dx": random.uniform(-2, 2), "dy": random.uniform(-2, 2)} for _ in range(num_particles)]
+random_particles = [
+    {
+        "x": random.randint(0, WIDTH),
+        "y": random.randint(0, HEIGHT),
+        "dx": random.uniform(-2, 2),
+        "dy": random.uniform(-2, 2),
+    }
+    for _ in range(num_particles)
+]
 
 jarvis_responses = [
     "Тук съм, как мога да помогна?",
     "Слушам, как мога да Ви асистирам?",
     "Тук съм, как мога да помогна?",
-    "С какво мога да Ви бъда полезен?"
+    "С какво мога да Ви бъда полезен?",
     # "Слушам шефе, как да помогна?"
 ]
 
@@ -163,7 +177,7 @@ selected_songs = [
     "September - Earth, Wind & Fire",
     "Should I Stay or Should I Go - Remastered",
     "If You Want Blood(You've Got It) - AC/DC",
-    "Welcome Tо The Jungle - Guns N' Roses"
+    "Welcome Tо The Jungle - Guns N' Roses",
 ]
 
 status_list = []
@@ -198,6 +212,7 @@ def blend_color(current, target, speed):
         else:
             current[i] = target[i]
 
+
 def draw_particles(surface, particles, target_mode=False):
     """Draws particles on the surface. If target_mode is True, arrange them in a circle and pulse."""
     global angle, pulse_factor
@@ -205,15 +220,24 @@ def draw_particles(surface, particles, target_mode=False):
     for i, particle in enumerate(particles):
         if target_mode:
             # Calculate target circular positions
-            target_x = center[0] + math.cos(math.radians(angle + i * 360 / len(particles))) * max_radius
-            target_y = center[1] + math.sin(math.radians(angle + i * 360 / len(particles))) * max_radius
+            target_x = (
+                center[0]
+                + math.cos(math.radians(angle + i * 360 / len(particles))) * max_radius
+            )
+            target_y = (
+                center[1]
+                + math.sin(math.radians(angle + i * 360 / len(particles))) * max_radius
+            )
             # Smoothly move particles towards their circular positions
             particle["x"] += (target_x - particle["x"]) * 0.05
             particle["y"] += (target_y - particle["y"]) * 0.05
 
             # Pulse effect
-            pulse_factor = min(max_size, pulse_factor + pulse_speed) if pulse_factor < max_size else max(min_size,
-                                                                                                         pulse_factor - pulse_speed)
+            pulse_factor = (
+                min(max_size, pulse_factor + pulse_speed)
+                if pulse_factor < max_size
+                else max(min_size, pulse_factor - pulse_speed)
+            )
         else:
             # Move particles randomly when in default mode
             particle["x"] += particle["dx"]
@@ -226,7 +250,13 @@ def draw_particles(surface, particles, target_mode=False):
                 particle["dy"] *= -1
 
         # Draw the particle
-        pygame.draw.circle(surface, tuple(current_color_2), (int(particle["x"]), int(particle["y"])), int(pulse_factor))
+        pygame.draw.circle(
+            surface,
+            tuple(current_color_2),
+            (int(particle["x"]), int(particle["y"])),
+            int(pulse_factor),
+        )
+
 
 def draw_response(model):
     """Update settings when the model is answering."""
@@ -246,6 +276,7 @@ def draw_response(model):
     is_collided = True
     angle += speed
 
+
 def draw_thinking():
     """Update settings when the model is listening."""
     global target_color_1, target_color_2, is_collided, angle, speed
@@ -255,6 +286,7 @@ def draw_thinking():
     is_collided = True
     angle += speed
 
+
 def draw_default():
     """Update settings when the model is not answering."""
     global target_color_1, target_color_2, is_collided, speed
@@ -263,26 +295,31 @@ def draw_default():
     speed = 1
     is_collided = False
 
+
 def draw_text(surface, text, position, font, color):
     """Draws text onto the surface."""
     text_surface = font.render(text, True, color)
     surface.blit(text_surface, position)
 
+
 def fetch_current_track():
     """Fetch the current playing track and its album cover."""
     try:
         current_track = sp.currently_playing()
-        if current_track and current_track['is_playing']:
-            song = current_track['item']['name']
-            artist = ", ".join([a['name'] for a in current_track['item']['artists']])
-            album_cover_url = current_track['item']['album']['images'][0]['url']
-            progress_ms = current_track['progress_ms']  # Progress in milliseconds
-            duration_ms = current_track['item']['duration_ms']  # Duration in milliseconds
+        if current_track and current_track["is_playing"]:
+            song = current_track["item"]["name"]
+            artist = ", ".join([a["name"] for a in current_track["item"]["artists"]])
+            album_cover_url = current_track["item"]["album"]["images"][0]["url"]
+            progress_ms = current_track["progress_ms"]  # Progress in milliseconds
+            duration_ms = current_track["item"][
+                "duration_ms"
+            ]  # Duration in milliseconds
             return song, artist, album_cover_url, progress_ms, duration_ms
         return None, None, None, 0, 0
     except Exception as e:
         print(f"Error fetching track: {e}")
         return None, None, None, 0, 0
+
 
 def draw_progress_bar(surface, x, y, width, height, progress, max_progress):
     """Draw a progress bar to represent the song timeline."""
@@ -300,6 +337,7 @@ def draw_progress_bar(surface, x, y, width, height, progress, max_progress):
     # Draw the filled progress bar (foreground)
     pygame.draw.rect(surface, Color.GREEN1.value, (x, y, progress_width, height))
 
+
 def update_status(new_status):
     # Add new status to the list
     status_list.append(new_status)
@@ -308,6 +346,7 @@ def update_status(new_status):
     if len(status_list) > 5:
         status_list.pop(0)  # Remove the oldest status (first element)
 
+
 def draw_dropdown(surface, x, y, w, h, font, options, selected, is_open):
     # Draw main box
     pygame.draw.rect(surface, Color.WHITE.value, (x, y, w, h), border_radius=5)
@@ -315,11 +354,15 @@ def draw_dropdown(surface, x, y, w, h, font, options, selected, is_open):
     surface.blit(text_surface, (x + 5, y + (h - text_surface.get_height()) // 2))
 
     # Draw arrow
-    pygame.draw.polygon(surface, Color.BLACK.value, [
-        (x + w - 20, y + h // 3),
-        (x + w - 10, y + h // 3),
-        (x + w - 15, y + 2 * h // 3)
-    ])
+    pygame.draw.polygon(
+        surface,
+        Color.BLACK.value,
+        [
+            (x + w - 20, y + h // 3),
+            (x + w - 10, y + h // 3),
+            (x + w - 15, y + 2 * h // 3),
+        ],
+    )
 
     # Draw expanded options if open
     if is_open:
@@ -327,12 +370,18 @@ def draw_dropdown(surface, x, y, w, h, font, options, selected, is_open):
             rect = pygame.Rect(x, y + (i + 1) * h, w, h)
             pygame.draw.rect(surface, Color.WHITE.value, rect, border_radius=5)
             option_surface = font.render(option, True, Color.BLACK.value)
-            surface.blit(option_surface, (x + 5, y + (h - option_surface.get_height()) // 2 + (i + 1) * h))
+            surface.blit(
+                option_surface,
+                (x + 5, y + (h - option_surface.get_height()) // 2 + (i + 1) * h),
+            )
+
 
 def chatbot():
     global wake_word_detected, model_answering, is_generating, jarvis_voice, jarvis_name
 
-    print("Welcome to Vision! Say any of the models name to activate. Say 'exit' to quit.")
+    print(
+        "Welcome to Vision! Say any of the models name to activate. Say 'exit' to quit."
+    )
 
     while True:
         if not wake_word_detected:
@@ -344,7 +393,10 @@ def chatbot():
                 continue
 
             user_input_lower = user_input.lower()
-            if any(word in user_input_lower for word in ["джарвис", "джарви", "джервис", "jarvis", "черви"]):
+            if any(
+                word in user_input_lower
+                for word in ["джарвис", "джарви", "джервис", "jarvis", "черви"]
+            ):
                 wake_word_detected = True
                 pygame.mixer.music.load("../sound_files/beep.flac")
                 pygame.mixer.music.play()
@@ -443,7 +495,7 @@ while running:
                         dropdown_rect.x,
                         dropdown_rect.y + (i + 1) * dropdown_rect.height,
                         dropdown_rect.width,
-                        dropdown_rect.height
+                        dropdown_rect.height,
                     )
                     if option_rect.collidepoint(mouse_pos):
                         selected_model = option
@@ -467,17 +519,38 @@ while running:
 
     # Draw Text
     draw_text(screen, "Vision Interface MK4", (10, 10), font_large, Color.WHITE.value)
-    draw_text(screen, "System Status: All Systems Online", (10, 60), font_small, tuple(current_color_2))
+    draw_text(
+        screen,
+        "System Status: All Systems Online",
+        (10, 60),
+        font_small,
+        tuple(current_color_2),
+    )
 
     # Draw the list of statuses under "System Status"
     start_y = 90  # Starting position for the list of items
     line_height = 30  # Space between each list item
     for index, status in enumerate(status_list):
-        draw_text(screen, status, (10, start_y + index * line_height), font_small, Color.WHITE.value)
+        draw_text(
+            screen,
+            status,
+            (10, start_y + index * line_height),
+            font_small,
+            Color.WHITE.value,
+        )
 
     # Draw dropdown
-    draw_dropdown(screen, dropdown_rect.x, dropdown_rect.y, dropdown_rect.width, dropdown_rect.height,
-                  font_small, models, selected_model, dropdown_open)
+    draw_dropdown(
+        screen,
+        dropdown_rect.x,
+        dropdown_rect.y,
+        dropdown_rect.width,
+        dropdown_rect.height,
+        font_small,
+        models,
+        selected_model,
+        dropdown_open,
+    )
 
     # Fetch current track periodically (e.g., every 3 seconds)
     if pygame.time.get_ticks() % 3000 < 50:  # Update every 3 seconds
@@ -491,7 +564,9 @@ while running:
     # Draw the progress bar for the song timeline
     progress_bar_x = (WIDTH - 700) // 2
     progress_bar_y = HEIGHT - 30
-    draw_progress_bar(screen, progress_bar_x, progress_bar_y, 700, 10, current_progress, song_duration)
+    draw_progress_bar(
+        screen, progress_bar_x, progress_bar_y, 700, 10, current_progress, song_duration
+    )
 
     # Draw song information above the progress bar
     if current_song:
