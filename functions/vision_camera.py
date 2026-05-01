@@ -8,10 +8,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from jarvis_functions.essential_functions.enhanced_elevenlabs import (
+from functions.essential_functions.enhanced_elevenlabs import (
     generate_audio_from_text,
 )
-from jarvis_functions.essential_functions.config import get_jarvis_voice
+from functions.essential_functions.config import get_jarvis_voice
 
 os.environ["GEMINI_API_KEY"] = os.getenv("GEMINI_KEY")
 

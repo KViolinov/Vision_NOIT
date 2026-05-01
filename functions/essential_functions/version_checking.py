@@ -1,6 +1,6 @@
 import requests
 from packaging import version
-from jarvis_functions.essential_functions.config import (
+from functions.essential_functions.config import (
     get_jarvis_voice,
     get_jarvis_name,
     change_jarvis_name,
@@ -9,7 +9,7 @@ from jarvis_functions.essential_functions.config import (
     get_type_discussion,
 )
 
-from jarvis_functions.essential_functions.enhanced_elevenlabs import (
+from functions.essential_functions.enhanced_elevenlabs import (
     generate_audio_from_text,
 )
 

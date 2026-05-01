@@ -11,13 +11,13 @@ from pydub import AudioSegment
 
 AudioSegment.converter = os.path.join(os.path.dirname(__file__), "ffmpeg.exe")
 
-from jarvis_functions.essential_functions.enhanced_elevenlabs import (
+from functions.essential_functions.enhanced_elevenlabs import (
     generate_audio_from_text,
 )
-from jarvis_functions.essential_functions.voice_input import record_text
-from jarvis_functions.play_spotify import play_song
+from functions.essential_functions.voice_input import record_text
+from functions.play_spotify import play_song
 
-from jarvis_functions.essential_functions.config import get_jarvis_voice
+from functions.essential_functions.config import get_jarvis_voice
 
 # from account.check_account import require_login
 

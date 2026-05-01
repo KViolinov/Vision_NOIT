@@ -89,12 +89,18 @@ Desktop.ini
 # ======================
 # Project-specific (VISION / JARVIS)
 # ======================
-/jarvis_functions/essential_functions/important_files/*
-/jarvis_functions/essential_functions/contacts.json
+/functions/essential_functions/contacts.json
 account/user_settings.json
 
 nuitka-crash-report.xml
 build.bat
 .pytest_cache
 testing.py
-vision_v4.exe
+.cache
+functions/essential_functions/important_files/*.exe
+# Ignore executable files
+*.exe
+# Ignore temporary session files
+*.session
+# Ignore cache
+.cache/

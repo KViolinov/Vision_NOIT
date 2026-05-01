@@ -4,13 +4,13 @@ import dotenv
 import win32com.client as win32
 import google.generativeai as genai
 
-from jarvis_functions.essential_functions.voice_input import record_text
-from jarvis_functions.essential_functions.enhanced_elevenlabs import (
+from functions.essential_functions.voice_input import record_text
+from functions.essential_functions.enhanced_elevenlabs import (
     generate_audio_from_text,
 )
 
-from jarvis_functions.essential_functions.config import get_jarvis_voice
-from jarvis_functions.essential_functions.contact_locator import find_contact
+from functions.essential_functions.config import get_jarvis_voice
+from functions.communication.contact_locator import find_contact
 
 jarvis_voice = get_jarvis_voice()
 

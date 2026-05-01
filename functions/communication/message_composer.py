@@ -1,5 +1,6 @@
 import google.generativeai as genai
-from jarvis_functions.send_message_instagram.send_message import *
+from functions.communication.instagram import *
+from functions.communication.whatsapp import whatsapp_send_message
 
 import os
 from dotenv import load_dotenv
@@ -37,4 +38,5 @@ def generate_message(text: str):
     print(f"Extracted name: {name}")
     print(f"Generated message: {message}")
 
-    send_message_to_instagram_user(name, message)
+    # send_message_to_instagram_user(name, message)
+    whatsapp_send_message(name, message)

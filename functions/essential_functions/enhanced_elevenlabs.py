@@ -8,7 +8,6 @@ import os, sys
 
 
 def ensure_ffmpeg_in_path():
-    """Ensure ffmpeg, ffplay, ffprobe are available in PATH (works in both dev & compiled)."""
     if getattr(sys, "frozen", False):
         # When compiled with Nuitka or PyInstaller
         base_path = (
@@ -17,7 +16,7 @@ def ensure_ffmpeg_in_path():
             else os.path.dirname(sys.executable)
         )
         ffmpeg_dir = os.path.join(
-            base_path, "jarvis_functions", "essential_functions", "important_files"
+            base_path, "functions", "essential_functions", "important_files"
         )
     else:
         # When running directly from source — ffmpeg files are in the same folder

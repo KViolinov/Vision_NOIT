@@ -2,7 +2,7 @@ import json
 import os
 from functools import wraps
 
-from jarvis_functions.essential_functions.enhanced_elevenlabs import (
+from functions.essential_functions.enhanced_elevenlabs import (
     generate_audio_from_text,
 )
 
@@ -18,7 +18,7 @@ def require_login(func):
             with open(ACCOUNT_FILE, "r", encoding="utf-8") as f:
                 user_data = json.load(f)
         except FileNotFoundError:
-            from jarvis_functions.essential_functions.change_config_settings import (
+            from functions.essential_functions.config import (
                 get_jarvis_voice,
             )
 
@@ -40,7 +40,7 @@ def require_login(func):
         password = data.get("Password")
 
         if not email or not password:
-            from jarvis_functions.essential_functions.change_config_settings import (
+            from functions.essential_functions.config import (
                 get_jarvis_voice,
             )  # 👈 moved here
 

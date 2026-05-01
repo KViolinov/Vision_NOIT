@@ -4,7 +4,7 @@ import time
 import pygame
 import threading
 
-from jarvis_functions.essential_functions.voice_input import record_text
+from functions.essential_functions.voice_input import record_text
 
 # from account.check_account import require_login
 

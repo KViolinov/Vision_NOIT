@@ -3,7 +3,7 @@ import io
 from PIL import ImageGrab
 import google.generativeai as genai
 
-from jarvis_functions.essential_functions.enhanced_elevenlabs import (
+from functions.essential_functions.enhanced_elevenlabs import (
     generate_audio_from_text,
 )
 

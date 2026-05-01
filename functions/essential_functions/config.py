@@ -1,8 +1,8 @@
 import json
 import os
 
-from jarvis_functions.essential_functions.voice_input import record_text
-from jarvis_functions.essential_functions.enhanced_elevenlabs import (
+from functions.essential_functions.voice_input import record_text
+from functions.essential_functions.enhanced_elevenlabs import (
     generate_audio_from_text,
 )
 

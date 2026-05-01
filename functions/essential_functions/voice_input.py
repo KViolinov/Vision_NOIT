@@ -1,5 +1,5 @@
 import time
-from jarvis_functions.essential_functions.mic_state import is_muted
+from functions.essential_functions.mic_state import is_muted
 
 import os, speech_recognition as sr
 
