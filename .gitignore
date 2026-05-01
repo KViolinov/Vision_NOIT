@@ -104,3 +104,6 @@ functions/essential_functions/important_files/*.exe
 *.session
 # Ignore cache
 .cache/
+todo.todo
+jarvis_session.session
+PyWhatKit_DB.txt
