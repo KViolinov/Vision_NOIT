@@ -31,6 +31,112 @@
 - 🧠 Команден процесор (анализ и изпълнение на команди).  
 - 🔊 Обратна връзка (чрез синтезиран глас и графичен интерфейс).  
 
+```mermaid 
+flowchart TB
+
+%% =========================
+%% ROOT
+%% =========================
+A[VISION Desktop App]
+
+A --> B[main.py]
+B --> C[core / vision_assistant.py]
+
+%% =========================
+%% CORE ENGINE
+%% =========================
+subgraph CORE[Core Engine]
+C --> C1[Voice Input Manager]
+C --> C2[Intent Router]
+C --> C3[Command Dispatcher]
+C --> C4[Response Manager]
+end
+
+%% =========================
+%% UI
+%% =========================
+subgraph UI[UI Layer]
+U1[Desktop Interface]
+U2[Settings Page]
+U3[HTML / CSS / JavaScript]
+end
+
+A --> U1
+U1 --> U2
+U1 --> U3
+
+%% =========================
+%% FEATURE MODULES
+%% =========================
+subgraph FEATURES[Feature Modules]
+
+subgraph COMM[Communication]
+F1[mail_related.py]
+F2[whatsapp.py]
+F3[phone_call.py]
+F4[instagram.py]
+end
+
+subgraph MEDIA[Media]
+F5[play_spotify.py]
+F6[song_recognition.py]
+end
+
+subgraph VISION[Vision]
+F7[vision_camera.py]
+F8[take_screenshot.py]
+F9[record_video.py]
+end
+
+subgraph PRODUCTIVITY[Productivity]
+F10[document_writer.py]
+end
+
+subgraph SYSTEM[Essential Functions]
+F11[config.py]
+F12[voice_input.py]
+F13[enhanced_elevenlabs.py]
+F14[version_checking.py]
+F15[request_new_feature.py]
+end
+
+end
+
+%% =========================
+%% SERVICES
+%% =========================
+subgraph SERVICES[External Services]
+S1[Gemini API]
+S2[ElevenLabs API]
+S3[Spotify API]
+S4[Windows Automation]
+end
+
+%% =========================
+%% CONNECTIONS
+%% =========================
+C2 --> COMM
+C2 --> MEDIA
+C2 --> VISION
+C2 --> PRODUCTIVITY
+C2 --> SYSTEM
+
+C4 --> S1
+C4 --> S2
+MEDIA --> S3
+PRODUCTIVITY --> S4
+SYSTEM --> U2
+
+%% =========================
+%% STYLE
+%% =========================
+style A fill:#1f2937,color:#fff,stroke:#3b82f6,stroke-width:2px
+style CORE fill:#111827,color:#fff
+style UI fill:#0f172a,color:#fff
+style FEATURES fill:#111827,color:#fff
+style SERVICES fill:#111827,color:#fff
+```
+
 ## Реализация
 - **Език**: Python 3.12.1  
 - **Среда**: PyCharm  
