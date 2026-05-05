@@ -56,6 +56,8 @@ def generate_audio_from_text(text: str, voice: str):
             voice_id = "D7b0HzOjHS3KpzAVn1oC"
         case "Harvey":
             voice_id = "aGxtLGlVPKrKKdq1Uyrf"
+        case "Yordan":
+            voice_id = "vZifugoCmJjNgn0bBdKH"
 
     audio = elevenlabs.text_to_speech.convert(
         text=text,

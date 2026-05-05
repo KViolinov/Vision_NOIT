@@ -25,9 +25,9 @@ def save_config(data):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 
-@require_login
+# @require_login
 def change_jarvis_voice():
-    voices = ["Brian", "Jessica", "Roger", "Slavi", "Samantha", "Harvey"]
+    voices = ["Brian", "Jessica", "Roger", "Slavi", "Samantha", "Harvey", "Yordan"]
     config = load_config()
 
     current_voice = config.get("jarvis_voice", "Brian")
@@ -42,6 +42,7 @@ def change_jarvis_voice():
     generate_audio_from_text("Роджър", voice="Roger")
     generate_audio_from_text("Харви", voice="Harvey")
     generate_audio_from_text("Слави", voice="Slavi")
+    generate_audio_from_text("Йордан", voice="Yordan")
     generate_audio_from_text("и Саманта. Кой глас бихте предпочели?", voice="Samantha")
 
     print("🎙️ Listening for voice choice...")
@@ -73,7 +74,7 @@ def change_jarvis_voice():
     )
 
 
-@require_login
+# @require_login
 def change_jarvis_name():
     config = load_config()
     current_voice = config.get("jarvis_voice", "Brian")

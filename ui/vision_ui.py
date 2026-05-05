@@ -11,8 +11,6 @@ from account.auth_api import login, sign_up
 
 # BRIDGE: JS ↔ PYTHON COMMUNICATION
 class VisionBridge(QObject):
-    """Bridge for JS <-> Python communication"""
-
     sendState = Signal(str)
     sendSpotify = Signal(str, str, bool)
     sendContacts = Signal(str)
@@ -22,7 +20,7 @@ class VisionBridge(QObject):
         os.path.join(
             os.path.dirname(__file__),
             "..",
-            "jarvis_functions",
+            "functions",
             "essential_functions",
             "contacts.json",
         )
@@ -44,7 +42,6 @@ class VisionBridge(QObject):
     # CONTACTS HANDLING
     @Slot(result=str)
     def loadContacts(self):
-        """Load contacts from contacts.json (used on page load)."""
         try:
             if not os.path.exists(self.CONTACTS_FILE):
                 print(f"[PY] ⚠️ contacts.json not found at: {self.CONTACTS_FILE}")
@@ -61,7 +58,6 @@ class VisionBridge(QObject):
 
     @Slot(str, str, str, str, result=bool)
     def addContact(self, name, phone, email, link):
-        """Add a new contact to contacts.json"""
         new_contact = {"Име": name, "Телефон": phone, "Имейл": email, "Линк": link}
 
         try:
@@ -80,7 +76,6 @@ class VisionBridge(QObject):
 
     @Slot(str, result=bool)
     def deleteContact(self, name):
-        """Delete a contact by name"""
         try:
             contacts = json.loads(self.loadContacts())
             filtered = [c for c in contacts if c.get("Име") != name]
@@ -100,7 +95,7 @@ class VisionBridge(QObject):
         os.path.join(
             os.path.dirname(__file__),
             "..",
-            "jarvis_functions",
+            "functions",
             "essential_functions",
             "config.json",
         )
@@ -253,16 +248,13 @@ class VisionUI:
 
     # ---- Exposed controls for external modules ----
     def set_state(self, new_state: str):
-        """Change visual state of the orb (called from Python backend)."""
         print(f"[VisionUI] Switching to state: {new_state}")
         self.bridge.sendState.emit(new_state)
 
     def update_spotify(self, song, artist, playing):
-        """Update Spotify info on UI."""
         print(f"[VisionUI] Spotify → {song} / {artist} / playing={playing}")
         self.bridge.sendSpotify.emit(song, artist, playing)
 
     def update_mic_status(self, muted: bool):
-        """Update microphone status on UI."""
         print(f"[VisionUI] Microphone status → {'Muted' if muted else 'Unmuted'}")
         self.bridge.sendMicStatus.emit(muted)
